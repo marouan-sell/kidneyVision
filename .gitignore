@@ -1,0 +1,111 @@
+# =====================================================================
+# KidneyVision AI Monorepo — Git Ignore Rules
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Environment Files & Secrets (Never commit credentials)
+# ---------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+!**/.env.example
+
+# ---------------------------------------------------------------------
+# Operating System & IDE Files
+# ---------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# ---------------------------------------------------------------------
+# Python & AI Microservice
+# ---------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+instance/
+
+# ---------------------------------------------------------------------
+# Node & Frontend (React 19 / Vite)
+# ---------------------------------------------------------------------
+node_modules/
+dist/
+build/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------------------------------------------------------------------
+# Laravel Backend (PHP)
+# ---------------------------------------------------------------------
+vendor/
+/vendor/
+backend-laravel/vendor/
+backend-laravel/storage/*.key
+backend-laravel/storage/oauth-*.key
+backend-laravel/storage/framework/cache/*
+backend-laravel/storage/framework/sessions/*
+backend-laravel/storage/framework/views/*
+backend-laravel/storage/logs/*.log
+backend-laravel/.phpunit.result.cache
+storage/*.key
+storage/oauth-*.key
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*.log
+bootstrap/cache/*
+/bootstrap/cache/*
+backend-laravel/bootstrap/cache/*
+!backend-laravel/bootstrap/cache/.gitignore
+!backend-laravel/storage/framework/cache/.gitignore
+!backend-laravel/storage/framework/sessions/.gitignore
+!backend-laravel/storage/framework/views/.gitignore
+!backend-laravel/storage/logs/.gitignore
+
+# ---------------------------------------------------------------------
+# Databases & Local Logs
+# ---------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+database/*.sqlite
+database/*.sqlite-journal
+backend-laravel/database/*.sqlite
+backend-laravel/database/*.sqlite-journal
+*.log
+local-backend.log
+local-flask.log
+
+# ---------------------------------------------------------------------
+# Temporary Artifacts & Caches
+# ---------------------------------------------------------------------
+scratch/
+test_output/
+.temp/
