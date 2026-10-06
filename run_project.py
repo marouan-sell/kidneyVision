@@ -379,12 +379,19 @@ def main():
     monitor_thread.start()
 
     # Keep main thread alive and watch child processes
+    process_names = {
+        proc_flask: "AI Flask Microservice",
+        proc_laravel: "Laravel Backend API",
+        proc_frontend: "React Frontend Client",
+    }
+    reported_exits = set()
     try:
         while True:
-            for p in PROCESSES:
+            for p, name in process_names.items():
                 code = p.poll()
-                if code is not None and not SHUTTING_DOWN:
-                    log("WARN", f"A service exited unexpectedly with code {code}.", RED)
+                if code is not None and not SHUTTING_DOWN and p not in reported_exits:
+                    reported_exits.add(p)
+                    log("WARN", f"[{name}] exited unexpectedly with code {code}.", RED)
             time.sleep(1)
     except KeyboardInterrupt:
         shutdown_all()

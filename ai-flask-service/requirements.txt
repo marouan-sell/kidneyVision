@@ -1,6 +1,10 @@
-Flask
+Flask>=2.3.0
+flask-cors>=4.0.0
 Werkzeug
-tensorflow==2.21.0
+torch
+torchvision
 Pillow
 numpy
-gunicorn
+opencv-python
+matplotlib
+scikit-learn
