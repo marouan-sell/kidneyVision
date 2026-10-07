@@ -62,21 +62,8 @@ def process_and_predict(image_bytes: bytes, filename: str = "scan.jpg", auto_mas
             gate_tensor = preprocess_for_torch(img_pil, device)
             with torch.no_grad():
                 gate_logit = gate_model(gate_tensor)
-                kidney_prob = float(torch.sigmoid(gate_logit).item())
-
-            # If borderline or rejected initially, verify with machine-text cleaned scan
-            if (1.0 - kidney_prob) >= GATE_THRESHOLD and auto_mask:
-                try:
-                    clean_for_gate = auto_mask_and_clean_image(img_pil)["cleaned_pil"]
-                    gate_tensor_clean = preprocess_for_torch(clean_for_gate, device)
-                    with torch.no_grad():
-                        clean_logit = gate_model(gate_tensor_clean)
-                        clean_kidney_prob = float(torch.sigmoid(clean_logit).item())
-                        kidney_prob = max(kidney_prob, clean_kidney_prob)
-                except Exception as clean_err:
-                    logger.debug(f"Gatekeeper clean fallback skipped: {clean_err}")
-
-            non_kidney_prob = float(1.0 - kidney_prob)
+                non_kidney_prob = float(torch.sigmoid(gate_logit).item())
+                kidney_prob = float(1.0 - non_kidney_prob)
 
             logger.info(
                 f"[GATEKEEPER] Kidney Prob: {kidney_prob * 100:.2f}%, "
