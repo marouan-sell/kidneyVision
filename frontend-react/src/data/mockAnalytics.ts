@@ -108,8 +108,8 @@ export function computeDashboardMetrics(scans: ScanRecord[] = []): DashboardMetr
     pathologyRate,
     pendingRate,
     rejectedRate,
-    scansDeltaPct: +12.5,
-    confidenceDeltaPct: +0.4,
+    scansDeltaPct: totalScans > 0 ? +12.5 : 0,
+    confidenceDeltaPct: totalScans > 0 ? +0.4 : 0,
     pendingReviewCount: pendingScans,
   };
 }

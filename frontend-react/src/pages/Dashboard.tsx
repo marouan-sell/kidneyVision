@@ -29,7 +29,6 @@ import { KidneyAnalysis, DiagnosisResult } from '../types/analysis';
 
 import type { DateRangeOption } from '../types/dashboard';
 import type { Diagnosis, ScanRecord, ScanStatus } from '../types/scan';
-import { MOCK_SCANS } from '../data/mockScans';
 import { Menu, Upload, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export interface DashboardProps {
@@ -157,16 +156,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
   const [showNewScanModal, setShowNewScanModal] = useState<boolean>(false);
   const [newScanStep, setNewScanStep] = useState<number>(1);
 
-  // Load real analyses from Laravel API if available
+  // Load real analyses from Laravel API
   const loadBackendScans = async () => {
     try {
       const res = await getAnalyses(1, 100);
-      if (res && res.data && res.data.length > 0) {
+      if (res && Array.isArray(res.data)) {
         const mapped = res.data.map(mapAnalysisToScanRecord);
         setBackendScans(mapped);
+      } else {
+        setBackendScans([]);
       }
     } catch {
-      // Backend offline or user not logged in; gracefully proceed with MOCK_SCANS
+      // Backend offline or user not logged in; retain real empty state
+      setBackendScans([]);
     }
   };
 
@@ -174,9 +176,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
     loadBackendScans();
   }, []);
 
-  // Real scans from backend database with graceful fallback to MOCK_SCANS
+  // Real scans from backend database (authenticated user)
   const allScans = useMemo(() => {
-    return backendScans.length > 0 ? backendScans : MOCK_SCANS;
+    return backendScans;
   }, [backendScans]);
 
   // Filter scans by active date range

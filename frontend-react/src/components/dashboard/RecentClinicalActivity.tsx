@@ -157,7 +157,9 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
             {paginatedScans.length === 0 ? (
               <tr>
                 <td colSpan={9} className="py-8 text-center text-slate-400">
-                  No scan records matching the selected criteria.
+                  {scans.length === 0
+                    ? 'No scans recorded yet. Upload an ultrasound scan to begin analysis.'
+                    : 'No scan records matching the selected criteria.'}
                 </td>
               </tr>
             ) : (

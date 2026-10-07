@@ -21,11 +21,15 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         iconColor="text-sky-600"
         iconBg="bg-sky-50"
         highlightColor="blue"
-        trend={{
-          value: `+${metrics.scansDeltaPct}%`,
-          isPositive: true,
-          label: 'vs previous 30d',
-        }}
+        trend={
+          metrics.totalScans > 0
+            ? {
+                value: `+${metrics.scansDeltaPct}%`,
+                isPositive: true,
+                label: 'vs previous 30d',
+              }
+            : undefined
+        }
       />
 
       {/* 2. Normal Scans */}
@@ -37,10 +41,14 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         iconColor="text-emerald-600"
         iconBg="bg-emerald-50"
         highlightColor="emerald"
-        trend={{
-          value: `${metrics.normalAverageConfidence}% avg`,
-          isPositive: true,
-        }}
+        trend={
+          metrics.normalScans > 0
+            ? {
+                value: `${metrics.normalAverageConfidence}% avg`,
+                isPositive: true,
+              }
+            : undefined
+        }
       />
 
       {/* 3. Pathology Findings (Stones, Cysts, Tumors) */}
@@ -52,11 +60,15 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         iconColor="text-rose-600"
         iconBg="bg-rose-50"
         highlightColor="rose"
-        trend={{
-          value: `${metrics.stoneScans}s / ${metrics.cystScans}c / ${metrics.tumorScans}t`,
-          isNeutral: true,
-          label: '4-class triage',
-        }}
+        trend={
+          metrics.pathologyDetections > 0
+            ? {
+                value: `${metrics.stoneScans}s / ${metrics.cystScans}c / ${metrics.tumorScans}t`,
+                isNeutral: true,
+                label: '4-class triage',
+              }
+            : undefined
+        }
       />
 
 
@@ -69,11 +81,15 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         iconColor="text-blue-600"
         iconBg="bg-blue-50"
         highlightColor="blue"
-        trend={{
-          value: `+${metrics.confidenceDeltaPct}%`,
-          isPositive: true,
-          label: 'Model calibration',
-        }}
+        trend={
+          metrics.totalScans > 0
+            ? {
+                value: `+${metrics.confidenceDeltaPct}%`,
+                isPositive: true,
+                label: 'Model calibration',
+              }
+            : undefined
+        }
       />
     </div>
   );
