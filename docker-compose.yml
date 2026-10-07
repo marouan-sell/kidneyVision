@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Flask AI Deep Learning Microservice
+  # Flask AI Deep Learning Microservice (PyTorch ConvNeXt + MobileNet)
   ai-service:
     build:
       context: .
@@ -12,15 +12,13 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - MODEL_PATH=best_model.keras
       - PORT=5000
-    volumes:
-      - ./models/production:/app/models
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 20s
 
   # Laravel 12 Backend API
   backend:
@@ -35,20 +33,25 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY=${APP_KEY:-base64:cK15Y1E4Y00FOGQd3H0Y5B40pZ1vB5h0+H1f1m9X+8M=}
-      - APP_URL=http://localhost:8000
-      - FRONTEND_URL=http://localhost:3000
-      - DB_CONNECTION=sqlite
-      - DB_DATABASE=/var/www/html/database/database.sqlite
+      - APP_URL=${APP_URL:-http://localhost:8000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      - DB_CONNECTION=${DB_CONNECTION:-sqlite}
+      - DB_HOST=${DB_HOST:-}
+      - DB_PORT=${DB_PORT:-}
+      - DB_DATABASE=${DB_DATABASE:-/var/www/html/database/database.sqlite}
+      - DB_USERNAME=${DB_USERNAME:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - AI_FLASK_BASE_URL=http://ai-service:5000
       - AI_SERVICE_URL=http://ai-service:5000
+      - AI_MOCK_ENABLED=false
     depends_on:
       ai-service:
         condition: service_healthy
-    command: php artisan serve --host=0.0.0.0 --port=8000
     volumes:
       - ./backend-laravel/storage:/var/www/html/storage
       - ./backend-laravel/database:/var/www/html/database
 
-  # React 19 Frontend Web Client
+  # React 19 Frontend Web Client & Reverse Proxy (Nginx)
   frontend:
     build:
       context: .
@@ -59,3 +62,4 @@ services:
       - "80:80"
     depends_on:
       - backend
+

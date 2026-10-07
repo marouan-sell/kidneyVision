@@ -11,22 +11,24 @@ function resolveApiUrl(): string {
   const isProd = Boolean((import.meta as any).env?.PROD);
 
   if (envApiUrl) {
-    if (!/^https?:\/\//i.test(envApiUrl)) {
-      const errorMsg = `[KidneyVision Security] Invalid VITE_API_URL protocol: "${envApiUrl}". Must begin with http:// or https://.`;
-      console.error(errorMsg);
+    if (!/^https?:\/\//i.test(envApiUrl) && !envApiUrl.startsWith('/')) {
+      console.warn(`[KidneyVision Security] Unexpected VITE_API_URL format: "${envApiUrl}". Falling back to safe resolution.`);
       if (isProd) {
-        return "";
+        if (typeof window !== "undefined" && window.location?.origin) {
+          return `${window.location.origin}/api`;
+        }
+        return "/api";
       }
     }
     return envApiUrl.replace(/\/+$/, "");
   }
 
   if (isProd) {
-    console.error(
-      "[KidneyVision Security Alert] Production deployment detected without an explicit VITE_API_URL environment variable. " +
-      "All API network operations are safely locked to prevent unintentional transmission of patient imaging and clinical data."
-    );
-    return "";
+    // When served behind Nginx reverse proxy in production, dynamically route to same-origin /api
+    if (typeof window !== "undefined" && window.location?.origin) {
+      return `${window.location.origin}/api`;
+    }
+    return "/api";
   }
 
   // Safe development fallback
@@ -101,10 +103,10 @@ export const apiClient = axios.create({
 let csrfFetched = false;
 
 export async function fetchCsrfCookie() {
-  if (!BASE_URL) return;
+  const sanctumUrl = BASE_URL ? `${BASE_URL}/sanctum/csrf-cookie` : "/sanctum/csrf-cookie";
   if (!csrfFetched) {
     try {
-      await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, {
+      await axios.get(sanctumUrl, {
         withCredentials: true
       });
       csrfFetched = true;

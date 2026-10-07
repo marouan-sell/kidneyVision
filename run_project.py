@@ -172,6 +172,16 @@ def setup_environments():
         db_file.touch()
         log("RUNNER", f"Initialized SQLite database at {db_file}", GREEN)
 
+    for d in [
+        LARAVEL_DIR / "bootstrap" / "cache",
+        LARAVEL_DIR / "storage" / "app" / "public",
+        LARAVEL_DIR / "storage" / "framework" / "cache",
+        LARAVEL_DIR / "storage" / "framework" / "sessions",
+        LARAVEL_DIR / "storage" / "framework" / "views",
+        LARAVEL_DIR / "storage" / "logs",
+    ]:
+        d.mkdir(parents=True, exist_ok=True)
+
     # 4. Frontend .env
     frontend_env = FRONTEND_DIR / ".env"
     frontend_example = FRONTEND_DIR / ".env.example"
@@ -219,7 +229,8 @@ def shutdown_all(*args):
     SHUTTING_DOWN = True
     print("\n")
     log("RUNNER", "Stopping all KidneyVision AI microservices...", YELLOW)
-    for p in PROCESSES:
+    for item in PROCESSES:
+        p = item["proc"] if isinstance(item, dict) else item
         kill_proc(p)
     log("RUNNER", "All services stopped cleanly. Goodbye!", GREEN)
     sys.exit(0)
@@ -329,7 +340,7 @@ def main():
         text=True,
         bufsize=1,
     )
-    PROCESSES.append(proc_flask)
+    PROCESSES.append({"name": "AI Flask Service", "proc": proc_flask, "reported": False})
     threading.Thread(
         target=stream_output,
         args=(proc_flask.stdout, "AI-FLASK", YELLOW),
@@ -346,7 +357,7 @@ def main():
         text=True,
         bufsize=1,
     )
-    PROCESSES.append(proc_laravel)
+    PROCESSES.append({"name": "Laravel Backend API", "proc": proc_laravel, "reported": False})
     threading.Thread(
         target=stream_output,
         args=(proc_laravel.stdout, "BACKEND", MAGENTA),
@@ -362,8 +373,9 @@ def main():
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        shell=(sys.platform == "win32"),
     )
-    PROCESSES.append(proc_frontend)
+    PROCESSES.append({"name": "React Frontend", "proc": proc_frontend, "reported": False})
     threading.Thread(
         target=stream_output,
         args=(proc_frontend.stdout, "FRONTEND", CYAN),
@@ -381,10 +393,13 @@ def main():
     # Keep main thread alive and watch child processes
     try:
         while True:
-            for p in PROCESSES:
-                code = p.poll()
-                if code is not None and not SHUTTING_DOWN:
-                    log("WARN", f"A service exited unexpectedly with code {code}.", RED)
+            for item in PROCESSES:
+                proc = item["proc"]
+                name = item["name"]
+                code = proc.poll()
+                if code is not None and not item["reported"] and not SHUTTING_DOWN:
+                    item["reported"] = True
+                    log("WARN", f"Service '{name}' exited with code {code}.", RED)
             time.sleep(1)
     except KeyboardInterrupt:
         shutdown_all()

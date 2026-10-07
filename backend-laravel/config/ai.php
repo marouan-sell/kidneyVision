@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'flask_base_url' => env('AI_FLASK_BASE_URL', 'http://127.0.0.1:5000'),
+    'flask_base_url' => env('AI_FLASK_BASE_URL', env('AI_SERVICE_URL', 'http://127.0.0.1:5000')),
     'predict_endpoint' => env('AI_PREDICT_ENDPOINT', '/predict'),
     'health_endpoint' => env('AI_HEALTH_ENDPOINT', '/health'),
     'timeout' => (int) env('AI_TIMEOUT', 30),

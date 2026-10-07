@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies needed for Pillow and TensorFlow
+# Install system dependencies needed for Pillow, OpenCV and container healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libgl1 \
@@ -14,14 +14,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install python dependencies
+# Copy requirements and install PyTorch CPU first to avoid heavy CUDA wheels (~2.5GB saved)
 COPY ai-flask-service/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code
+# Copy application source code (including models directory)
 COPY ai-flask-service /app
 
 EXPOSE 5000
 
 # Run with Gunicorn WSGI server
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "app:app"]
+

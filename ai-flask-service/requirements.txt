@@ -1,6 +1,9 @@
-Flask
-Werkzeug
-tensorflow==2.21.0
-Pillow
-numpy
-gunicorn
+Flask>=3.0.0
+Werkzeug>=3.0.0
+Pillow>=10.0.0
+numpy>=1.24.0,<2.0.0
+gunicorn>=21.2.0
+matplotlib>=3.8.0
+opencv-python-headless>=4.8.0
+torch>=2.0.0
+torchvision>=0.15.0
