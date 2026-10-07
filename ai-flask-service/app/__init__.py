@@ -27,3 +27,7 @@ def create_app() -> Flask:
 
     logger.info("KidneyVision AI microservice initialized.")
     return app
+
+# Expose WSGI application instance for gunicorn 'app:app'
+app = create_app()
+
