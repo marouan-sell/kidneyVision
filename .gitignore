@@ -11,6 +11,11 @@
 *.env
 !.env.example
 !**/.env.example
+*.pem
+*.key
+*.cer
+*.pub
+id_rsa*
 
 # ---------------------------------------------------------------------
 # Operating System & IDE Files
