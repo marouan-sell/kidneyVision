@@ -8,3 +8,6 @@
 
 # Ensure shell scripts always retain Linux LF line endings
 *.sh text eol=lf
+
+# Binary documentation assets
+*.pdf -text
