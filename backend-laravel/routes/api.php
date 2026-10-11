@@ -24,9 +24,11 @@ use Illuminate\Support\Facades\Route;
 // ──────────────────────────────────────────────
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])
+        ->middleware('throttle:10,1')
         ->name('auth.register');
 
     Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:10,1')
         ->name('login');
 
     Route::post('/password/email', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'sendResetLinkEmail'])
@@ -34,10 +36,12 @@ Route::prefix('auth')->group(function () {
         ->name('password.email');
 
     Route::post('/password/reset', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'reset'])
+        ->middleware('throttle:5,1')
         ->name('password.reset');
 });
 
 Route::post('/guest-predict', [\App\Http\Controllers\Api\V1\GuestAnalysisController::class, 'predict'])
+    ->middleware('throttle:20,1')
     ->name('guest.predict');
 
 Route::get('/health', function () {
