@@ -12,6 +12,7 @@ Ce document récapitule l'architecture, la configuration de production, les corr
 | **Région** | Denmark East |
 | **Machine Virtuelle** | `kidneyvision-vm` (`Standard_B2als_v2` — 2 vCPU, 4 GiB RAM) |
 | **Système d'Exploitation** | Ubuntu Server 24.04 LTS x64 |
+| **Nom de Domaine Officiel** | [http://kidneyvision.publicvm.com](http://kidneyvision.publicvm.com) |
 | **Adresse IP Publique** | `9.205.29.254` |
 | **Accès SSH Sécurisé** | `azureuser@9.205.29.254` (Clé privée : `kidneyvision-key.pem`) |
 | **Dépôt GitHub** | [https://github.com/marouan-sell/kidneyVision](https://github.com/marouan-sell/kidneyVision) |
