@@ -51,6 +51,7 @@ L'application est orchestrée avec **Docker Compose** en 3 conteneurs isolés su
 2. **Ports Internes Isolés** : Les ports `8000` (Laravel) et `5000` (Flask AI) sont strictement fermés au public (`expose` uniquement, aucun mapping d'hôte direct).
 3. **Firewall UFW & Fail2ban** : Activés sur l'OS hôte pour prévenir les attaques par force brute.
 4. **Sauvegarde Automatisée Quotidienne** : Un script de sauvegarde `deployment/backup.sh` s'exécute automatiquement chaque nuit à 02:00 via un cron job (`0 2 * * * /home/azureuser/backup.sh`) et archive la base SQLite ainsi que le stockage des échographies.
+5. **Certificat SSL / HTTPS Sécurisé** : Certificat Let's Encrypt officiel activé pour `https://kidneyvision.publicvm.com`, redirection 301 automatique HTTP vers HTTPS, et renouvellement automatisé avec hooks Docker.
 
 ---
 
