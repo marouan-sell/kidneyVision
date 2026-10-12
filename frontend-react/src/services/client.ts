@@ -7,10 +7,24 @@ import axios from "axios";
  *   fails safely and blocks network requests rather than silently leaking clinical data.
  */
 function resolveApiUrl(): string {
+  // If running in browser and NOT on localhost/127.0.0.1, always route through same-origin reverse proxy /api
+  if (typeof window !== "undefined" && window.location?.hostname) {
+    const host = window.location.hostname;
+    if (host !== "localhost" && host !== "127.0.0.1") {
+      return `${window.location.origin}/api`;
+    }
+  }
+
   const envApiUrl = ((import.meta as any).env?.VITE_API_URL as string | undefined)?.trim();
   const isProd = Boolean((import.meta as any).env?.PROD);
 
   if (envApiUrl) {
+    if (isProd && (envApiUrl.includes("localhost") || envApiUrl.includes("127.0.0.1"))) {
+      if (typeof window !== "undefined" && window.location?.origin) {
+        return `${window.location.origin}/api`;
+      }
+      return "/api";
+    }
     if (!/^https?:\/\//i.test(envApiUrl) && !envApiUrl.startsWith('/')) {
       console.warn(`[KidneyVision Security] Unexpected VITE_API_URL format: "${envApiUrl}". Falling back to safe resolution.`);
       if (isProd) {
