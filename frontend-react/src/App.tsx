@@ -28,6 +28,7 @@ const PrivacyPage = React.lazy(() => import("./components/PrivacyPage"));
 const TermsPage = React.lazy(() => import("./components/TermsPage"));
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { CLINICIAN_AVATAR_FALLBACK_SVG } from "./services/client";
 
 function PortalLayout() {
   const { user, logout } = useAuth();
@@ -176,6 +177,9 @@ function PortalLayout() {
                 alt="Clinician Avatar Badge" 
                 className="w-9 h-9 rounded-full object-cover border border-[#c3c6d7] group-hover:border-[#2563eb] transition-all" 
                 src={user.avatarUrl}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = CLINICIAN_AVATAR_FALLBACK_SVG;
+                }}
               />
             ) : (
               <div className="w-9 h-9 rounded-full bg-[#eff4fe] text-[#2563eb] border border-[#c3c6d7] flex items-center justify-center font-bold text-xs group-hover:border-[#2563eb] transition-all shrink-0">

@@ -64,7 +64,10 @@ def auto_mask_and_clean_image(img_pil: Image.Image) -> dict:
         border_brightness = (
             np.mean(gray[:30, :]) + np.mean(gray[-30:, :]) + np.mean(gray[:, :30]) + np.mean(gray[:, -30:])
         ) / 4.0
-        is_paper_photo = (border_brightness > 70 or (w > 800 and h > 800)) and not (abs(w - h) < 15 and border_brightness < 20)
+        # Paper photos taken by smartphones have light/white borders (> 70 intensity).
+        # Authentic digital ultrasound scans have black acoustic margins (border_brightness < 40).
+        # We must never crop legitimate high-resolution digital scans simply because w > 800 and h > 800.
+        is_paper_photo = border_brightness > 70 and not (abs(w - h) < 15 and border_brightness < 20)
 
         if is_paper_photo:
             crop_top = int(h * 0.13)

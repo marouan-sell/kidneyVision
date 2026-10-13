@@ -11,6 +11,7 @@ import {
   FileText, Download, FileDown, Sparkles, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck
 } from "lucide-react";
 import { getAnalyses, deleteAnalysis, downloadReport, updateAnalysis, getReportPdfBlobUrl } from "../services";
+import { CLINICAL_SCAN_FALLBACK_SVG } from "../services/client";
 import { KidneyAnalysis, DiagnosisResult } from "../types";
 import { parseClinicalError, ClinicalError } from "../utils/errorParser";
 import LoadingSkeleton from "./common/LoadingSkeleton";
@@ -97,10 +98,10 @@ export default function AppHistory() {
     setNoteSavedFeedback(false);
   };
 
-  async function loadAnalyses(page: number) {
+  async function loadAnalyses(page: number, search?: string, status?: string) {
     setLoading(true);
     try {
-      const response = await getAnalyses(page, 10);
+      const response = await getAnalyses(page, 10, search, status);
       setAnalyses(response.data);
       setMeta(response.meta);
       setCurrentPage(response.meta.current_page);
@@ -118,8 +119,11 @@ export default function AppHistory() {
   }
 
   useEffect(() => {
-    loadAnalyses(currentPage);
-  }, [currentPage]);
+    const timer = setTimeout(() => {
+      loadAnalyses(currentPage, searchId, statusFilter);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchId, statusFilter]);
 
   // Handle Deletion (DELETE /analyses/:id)
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -421,7 +425,7 @@ export default function AppHistory() {
                               alt="Ultrasound scan"
                               className="w-10 h-10 rounded-lg object-cover border border-[#c3c6d7] bg-neutral-900 group-hover/thumb:ring-2 group-hover/thumb:ring-[#2563eb] transition-all"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=400&q=80";
+                                (e.target as HTMLImageElement).src = CLINICAL_SCAN_FALLBACK_SVG;
                               }}
                             />
                             <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
@@ -745,22 +749,15 @@ export default function AppHistory() {
                         setEnlargedImageUrl(activeImg);
                         setEnlargedImageTitle(`${selectedAnalysis.patientName || selectedAnalysis.patientId} — ${viewLabel} (#${selectedAnalysis.id})`);
                       }}
-                      className={`${dossierViewMode === "panel" ? "aspect-[2.36/1] sm:aspect-[16/9]" : "aspect-video"} bg-black rounded-lg relative overflow-hidden flex items-center justify-center border border-[#c3c6d7] cursor-pointer group shadow-sm transition-all`}
+                      className="aspect-video bg-black rounded-lg relative overflow-hidden flex items-center justify-center border border-[#c3c6d7] cursor-pointer group shadow-sm transition-all"
                       title="Click to inspect full resolution"
                     >
-                      {dossierViewMode === "gradcam" && (
-                        <img
-                          alt="Underlying Scan"
-                          className="absolute inset-0 w-full h-full object-cover select-none"
-                          src={selectedAnalysis.cleanedScanUrl || selectedAnalysis.imageUrl}
-                        />
-                      )}
                       <img 
                         alt={viewLabel} 
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 relative z-10" 
                         src={activeImg} 
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = selectedAnalysis.imageUrl;
+                          (e.target as HTMLImageElement).src = selectedAnalysis.imageUrl || CLINICAL_SCAN_FALLBACK_SVG;
                         }}
                       />
                       <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded font-mono border border-white/10">
@@ -1141,7 +1138,7 @@ export default function AppHistory() {
                 alt="High-resolution ultrasound scan"
                 className="max-h-[70vh] w-auto max-w-full object-contain rounded"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80";
+                  (e.target as HTMLImageElement).src = CLINICAL_SCAN_FALLBACK_SVG;
                 }}
               />
             </div>
