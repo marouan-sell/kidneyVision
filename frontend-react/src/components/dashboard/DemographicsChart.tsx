@@ -84,7 +84,7 @@ export const DemographicsChart: React.FC<DemographicsChartProps> = ({ cohorts })
           <Users2 className="w-4 h-4 text-slate-400 stroke-[1.75]" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">Patient Demographic Cohorts</h3>
-            <p className="text-xs text-slate-500">Synthetic age cohort distribution across all 4 diagnostic classes</p>
+            <p className="text-xs text-slate-500">Age cohort distribution across diagnostic classes</p>
           </div>
         </div>
       </div>

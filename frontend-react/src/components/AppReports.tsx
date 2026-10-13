@@ -133,9 +133,7 @@ export default function AppReports() {
             <span className="text-[10px] font-semibold text-[#737686] uppercase tracking-wider block">Total Reports</span>
             <span className="font-sans text-lg font-bold text-[#131b2e]">{totalReports}</span>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-[#2563eb]/10 flex items-center justify-center text-[#2563eb]">
-            <FileText className="w-3.5 h-3.5" />
-          </div>
+          <FileText className="w-4 h-4 text-slate-400 stroke-[1.75]" />
         </div>
 
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-3 flex items-center justify-between">
@@ -143,9 +141,7 @@ export default function AppReports() {
             <span className="text-[10px] font-semibold text-[#737686] uppercase tracking-wider block">Stone Reports</span>
             <span className="font-sans text-lg font-bold text-red-600">{stoneCount}</span>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-600">
-            <AlertTriangle className="w-3.5 h-3.5" />
-          </div>
+          <AlertTriangle className="w-4 h-4 text-slate-400 stroke-[1.75]" />
         </div>
 
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-3 flex items-center justify-between">
@@ -153,9 +149,7 @@ export default function AppReports() {
             <span className="text-[10px] font-semibold text-[#737686] uppercase tracking-wider block">Cyst Reports</span>
             <span className="font-sans text-lg font-bold text-teal-600">{cystCount}</span>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-600">
-            <CircleDot className="w-3.5 h-3.5" />
-          </div>
+          <CircleDot className="w-4 h-4 text-slate-400 stroke-[1.75]" />
         </div>
 
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-3 flex items-center justify-between">
@@ -163,9 +157,7 @@ export default function AppReports() {
             <span className="text-[10px] font-semibold text-[#737686] uppercase tracking-wider block">Tumor Alerts</span>
             <span className="font-sans text-lg font-bold text-purple-600">{tumorCount}</span>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600">
-            <AlertOctagon className="w-3.5 h-3.5" />
-          </div>
+          <AlertOctagon className="w-4 h-4 text-slate-400 stroke-[1.75]" />
         </div>
 
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-3 flex items-center justify-between">
@@ -173,9 +165,7 @@ export default function AppReports() {
             <span className="text-[10px] font-semibold text-[#737686] uppercase tracking-wider block">Normal Scans</span>
             <span className="font-sans text-lg font-bold text-emerald-600">{normalCount}</span>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-          </div>
+          <CheckCircle2 className="w-4 h-4 text-slate-400 stroke-[1.75]" />
         </div>
       </div>
 
@@ -266,9 +256,7 @@ export default function AppReports() {
         {/* Empty State */}
         {!loading && filteredAnalyses.length === 0 && (
           <div className="py-16 text-center space-y-3 px-4">
-            <div className="w-12 h-12 rounded-full bg-[#f2f3ff] mx-auto flex items-center justify-center text-[#2563eb]">
-              <FileText className="w-6 h-6" />
-            </div>
+            <FileText className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-1" />
             <div>
               <h4 className="font-bold text-[#131b2e] text-sm">
                 {analyses.length === 0 ? "No diagnostic reports yet" : "No diagnostic reports found"}
@@ -332,8 +320,8 @@ export default function AppReports() {
                         }}
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-[#2563eb]/10 flex items-center justify-center text-[#2563eb] shrink-0">
-                        <FileText className="w-5 h-5" />
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                        <FileText className="w-5 h-5 stroke-[1.75]" />
                       </div>
                     )}
 
@@ -437,7 +425,7 @@ export default function AppReports() {
       {/* Compliance / Attestation Footer Card */}
       <div className="bg-[#eaedff]/40 border border-[#2563eb]/20 p-5 rounded-xl space-y-2">
         <h4 className="font-sans text-xs font-bold text-[#0053db] flex items-center gap-1.5">
-          <ShieldCheck className="w-4.5 h-4.5 text-[#2563eb]" />
+          <ShieldCheck className="w-4 h-4 text-slate-400 stroke-[1.75]" />
           Diagnostic Medical Record Integrity
         </h4>
         <p className="font-sans text-[11px] text-[#434655] leading-relaxed">
@@ -452,7 +440,7 @@ export default function AppReports() {
             {/* Modal Header */}
             <div className="px-5 py-3.5 border-b border-[#e2e8f0] flex items-center justify-between bg-[#f9fafb]">
               <div className="flex items-center gap-2 min-w-0">
-                <FileText className="w-4.5 h-4.5 text-[#2563eb] shrink-0" />
+                <FileText className="w-4 h-4 text-slate-500 shrink-0 stroke-[1.75]" />
                 <h3 className="font-bold text-sm text-[#131b2e] truncate">{previewTitle}</h3>
               </div>
 

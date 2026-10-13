@@ -81,9 +81,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
   // Analysis Pipeline Stages
   const ANALYSIS_STAGES = [
     { id: "uploading", label: "Uploading Scan", desc: "Streaming acoustic tensor to secure medical pipeline..." },
-    { id: "gatekeeper", label: "Stage-1 Gatekeeper Screening", desc: "MobileNetV3 evaluating renal vs non-kidney scan..." },
-    { id: "preprocessing", label: "Spatial Cleaning & Inpainting", desc: "Top-Hat filtering & Telea inpainting on 224x224 tensor..." },
-    { id: "analyzing", label: "ConvNeXt 4-Class Inference", desc: "Evaluating Cyst, Normal, Stone, Tumor pathologies..." },
+    { id: "gatekeeper", label: "Modality Screening", desc: "Evaluating renal scan authenticity and clarity..." },
+    { id: "preprocessing", label: "Spatial Cleaning & Inpainting", desc: "Digital artifact reduction on ultrasound tensor..." },
+    { id: "analyzing", label: "Diagnostic Evaluation", desc: "Evaluating Cyst, Normal, Stone, and Tumor pathologies..." },
     { id: "generating", label: "Grad-CAM Heatmap & Biometrics", desc: "Synthesizing spatial feature activation map & lesion diameter..." },
     { id: "completed", label: "Diagnostic Report Ready", desc: "Audit logged and ready for radiologist confirmation." },
   ];
@@ -240,14 +240,14 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
             New Renal Diagnostic Analysis
           </h1>
           <p className="font-sans text-xs text-[#434655]">
-            Upload renal CT or ultrasound scans to run Stage-1 Gatekeeper screening, ConvNeXt-Tiny 4-class classification (Cyst, Normal, Stone, Tumor), and Grad-CAM explainability localization.
+            Upload renal CT or ultrasound scans for automated pathology triage and Grad-CAM visual attribution.
           </p>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#c3c6d7] rounded-lg text-xs font-semibold text-[#434655] shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-sans text-[11px]">AI Model: ConvNeXt-Tiny (4-Class) & Gatekeeper</span>
+            <span className="font-sans text-[11px]">Diagnostic Engine Ready</span>
           </div>
           <a
             href="/help"
@@ -521,7 +521,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                     Click or drag & drop renal scan image (CT / Ultrasound)
                   </div>
                   <p className="font-sans text-[10px] text-[#737686] max-w-xs mx-auto">
-                    Supported formats: PNG, JPG • Auto-screened by Gatekeeper
+                    Supported formats: PNG, JPG • Automated modality screening
                   </p>
                   <div className="pt-2 flex items-center justify-center gap-2">
                     <span className="px-2 py-0.5 bg-slate-100 rounded text-[9.5px] font-mono text-slate-600 font-medium">Renal CT Axial / Coronal</span>
@@ -876,9 +876,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                         <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 stroke-[1.75]" />
                         <div className="min-w-0">
                           <div className="font-bold text-emerald-950 flex items-center gap-1.5">
-                            <span>Stage-1 Gatekeeper AI: PASSED</span>
+                            <span>Modality Screening: PASSED</span>
                             <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-200/70 text-emerald-800 font-mono">
-                              MobileNetV3
+                              Verified
                             </span>
                           </div>
                           <div className="text-[11px] text-emerald-800 truncate mt-0.5">
@@ -899,7 +899,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                     {activeAnalysis.classProbabilities && (
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                          <span>ConvNeXt-Tiny 4-Class Probability Spectrum</span>
+                          <span>4-Class Probability Spectrum</span>
                           <span className="font-mono text-[9.5px] text-slate-500">Softmax Normalized</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">

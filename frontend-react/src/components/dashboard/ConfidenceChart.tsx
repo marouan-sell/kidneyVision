@@ -103,11 +103,11 @@ export const ConfidenceChart: React.FC<ConfidenceChartProps> = ({
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-slate-400 stroke-[1.75]" />
             <h3 className="text-sm font-bold text-slate-900">
-              AI Confidence Distribution & Calibration
+              Confidence Distribution & Calibration
             </h3>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Model confidence spread across 4 diagnostic cohorts (85% decision baseline)
+            Confidence distribution across diagnostic cohorts
           </p>
         </div>
 

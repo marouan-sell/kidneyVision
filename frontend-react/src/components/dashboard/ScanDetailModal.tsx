@@ -192,7 +192,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Acquired on {scan.formattedDate} • ConvNeXt SOTA 4-Class & MobileNetV3 Gatekeeper
+                Acquired on {scan.formattedDate}
               </p>
             </div>
           </div>
@@ -350,8 +350,8 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
 
               {/* Reticle / calibration banner */}
               <div className="absolute bottom-2 left-4 right-4 flex items-center justify-between text-[10px] font-mono text-slate-400 pointer-events-none">
-                <span>D: 12.4 cm · ConvNeXt-Tiny Master</span>
-                <span>Gatekeeper: MobileNetV3</span>
+                <span>Calibration: 12.4 cm</span>
+                <span>Modality: Renal Ultrasound</span>
               </div>
             </div>
           </div>
@@ -362,7 +362,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
               <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 stroke-[1.75]" />
               <div>
                 <div className="font-bold text-emerald-950 flex items-center gap-1.5">
-                  <span>Stage-1 Gatekeeper Screening: PASSED</span>
+                  <span>Modality Authenticity Screening: PASSED</span>
                   <span className="text-[10px] font-mono bg-emerald-200 px-1.5 py-0.2 rounded text-emerald-800">
                     Authentic Renal Scan
                   </span>
@@ -385,7 +385,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
           {scan.classProbabilities && (
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                <span>ConvNeXt 4-Class Softmax Distribution</span>
+                <span>4-Class Probability Spectrum</span>
                 <span className="text-[9.5px] font-mono text-slate-400">Class Probabilities</span>
               </div>
               <div className="grid grid-cols-4 gap-2">
@@ -498,13 +498,13 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
             <p className="text-xs text-slate-700 leading-relaxed font-sans">
               {scan.clinicalAssessment?.recommendation ||
                 scan.notes ||
-                'Medical scan processed through SOTA ConvNeXt-Tiny & Gatekeeper AI inference. No acute disruption identified.'}
+                'Medical scan analyzed. Renal parenchyma preserved with no acute disruption identified.'}
             </p>
             <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-500">
               <span>
                 Cohort Demographic: {scan.patientAge} yrs • {scan.patientSex} • Laterality: {scan.laterality}
               </span>
-              <span className="font-mono text-[10px]">Model: ConvNeXt-Tiny Master SOTA + MobileNetV3 Gate</span>
+              <span className="font-mono text-[10px]">Standard Diagnostic Protocol</span>
             </div>
           </div>
         </div>

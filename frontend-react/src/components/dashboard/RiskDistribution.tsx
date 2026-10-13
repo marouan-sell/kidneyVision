@@ -2,7 +2,7 @@ import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import './chartSetup';
 import type { RiskDistributionPoint } from '../../types/analytics';
-import { AlertOctagon, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 
 interface RiskDistributionProps {
   distribution: RiskDistributionPoint[];
@@ -106,12 +106,6 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
             );
           })}
         </div>
-      </div>
-
-      {/* Note */}
-      <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 text-[11px] text-slate-400">
-        <AlertOctagon className="w-3.5 h-3.5 text-amber-500 stroke-[1.75]" />
-        <span>Urgent cases trigger immediate clinician review notifications</span>
       </div>
     </div>
   );

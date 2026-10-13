@@ -666,9 +666,6 @@ export default function AppHistory() {
                 <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs">
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-[#131b2e]">Visual Diagnostic Evidence</span>
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
-                      {selectedAnalysis.modelVersion || "ConvNeXt-Tiny Master"}
-                    </span>
                   </div>
                   <span className="text-[11px] text-[#737686]">Click image to enlarge</span>
                 </div>
@@ -785,10 +782,10 @@ export default function AppHistory() {
                     <ShieldCheck className={`w-4 h-4 ${selectedAnalysis.gateEvaluation.gate_passed ? "text-emerald-600" : "text-amber-600"}`} />
                     <div>
                       <span className="font-bold block leading-tight">
-                        Stage-1 Gatekeeper: {selectedAnalysis.gateEvaluation.gate_passed ? "Renal Ultrasound Verified" : "Non-Standard Scan"}
+                        Modality Screening: {selectedAnalysis.gateEvaluation.gate_passed ? "Renal Ultrasound Verified" : "Non-Standard Scan"}
                       </span>
                       <span className="text-[10px] text-slate-500">
-                        MobileNetV3 Anatomical Validation
+                        Anatomical Feature Screening
                       </span>
                     </div>
                   </div>
@@ -813,7 +810,6 @@ export default function AppHistory() {
                       <Layers className="w-3.5 h-3.5 text-slate-400 stroke-[1.75]" />
                       4-Class Probability Spectrum
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">ConvNeXt-Tiny</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {[

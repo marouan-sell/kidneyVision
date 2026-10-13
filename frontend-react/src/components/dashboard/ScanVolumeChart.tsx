@@ -153,7 +153,7 @@ export const ScanVolumeChart: React.FC<ScanVolumeChartProps> = ({ data }) => {
             </h3>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Temporal cadence across 4-class multi-pathology ultrasound sweeps
+            Temporal scan workload over time
           </p>
         </div>
 

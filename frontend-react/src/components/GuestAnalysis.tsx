@@ -249,7 +249,7 @@ export default function GuestAnalysis() {
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>
-                      Ultrasound Gatekeeper: <strong>Verified Renal Scan</strong>
+                      Modality Screening: <strong>Verified Renal Scan</strong>
                     </span>
                   </div>
                   {result.gateEvaluation.kidney_confidence_percent !== undefined && (
