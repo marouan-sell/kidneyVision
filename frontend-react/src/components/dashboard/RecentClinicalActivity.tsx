@@ -27,8 +27,10 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 8;
 
+  // Filtered scans
   const filteredScans = useMemo(() => {
     return scans.filter((scan) => {
+      // Search match
       const query = searchQuery.trim().toLowerCase();
       const matchSearch =
         !query ||
@@ -36,15 +38,18 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
         scan.patientAlias.toLowerCase().includes(query) ||
         scan.formattedDate.toLowerCase().includes(query);
 
+      // Diagnosis filter
       const matchDiagnosis =
         selectedDiagnosis === 'all' || scan.diagnosis === selectedDiagnosis;
 
+      // Risk filter
       const matchRisk = riskFilter === 'all' || scan.riskLevel === riskFilter;
 
       return matchSearch && matchDiagnosis && matchRisk;
     });
   }, [scans, searchQuery, selectedDiagnosis, riskFilter]);
 
+  // Pagination calculations
   const totalPages = Math.ceil(filteredScans.length / itemsPerPage) || 1;
   const paginatedScans = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -53,6 +58,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col overflow-hidden">
+      {/* Table Header & Controls */}
       <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -66,7 +72,9 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
           </p>
         </div>
 
+        {/* Search & Filters */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Search Input */}
           <div className="relative min-w-[200px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -81,6 +89,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
             />
           </div>
 
+          {/* Diagnosis Filter */}
           <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <select
@@ -101,6 +110,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
             </select>
           </div>
 
+          {/* Risk Filter */}
           <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
             <select
               value={riskFilter}
@@ -119,6 +129,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
         </div>
       </div>
 
+      {/* Table Content (Horizontally scrollable on small screens) */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
@@ -158,24 +169,29 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                     onClick={() => onSelectScan(scan)}
                     className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                   >
+                    {/* Scan ID */}
                     <td className="py-3 px-4 font-mono font-medium text-slate-900 group-hover:text-sky-600 transition-colors">
                       {scan.id}
                     </td>
 
+                    {/* Patient Alias */}
                     <td className="py-3 px-4 font-medium text-slate-800">
                       {scan.patientAlias}
                     </td>
 
+                    {/* Date */}
                     <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
                       {scan.formattedDate}
                     </td>
 
+                    {/* Laterality */}
                     <td className="py-3 px-4 capitalize">
                       <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">
                         {scan.laterality}
                       </span>
                     </td>
 
+                    {/* AI Result */}
                     <td className="py-3 px-4">
                       {isRejected && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
@@ -215,6 +231,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                       )}
                     </td>
 
+                    {/* AI Confidence */}
                     <td className="py-3 px-4">
                       {scan.confidence !== null ? (
                         <div className="flex items-center gap-2">
@@ -241,6 +258,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                       )}
                     </td>
 
+                    {/* Risk */}
                     <td className="py-3 px-4">
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
@@ -255,6 +273,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                       </span>
                     </td>
 
+                    {/* Status */}
                     <td className="py-3 px-4">
                       {scan.status === 'flagged' ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
@@ -274,6 +293,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                       )}
                     </td>
 
+                    {/* Action: Download PDF Report */}
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end">
                         <button
@@ -298,6 +318,7 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
         </table>
       </div>
 
+      {/* Pagination Footer */}
       <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
         <div>
           Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}

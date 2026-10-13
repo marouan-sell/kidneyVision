@@ -47,7 +47,8 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
+      {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-slate-400 stroke-[1.75]" />
@@ -58,7 +59,9 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 my-auto py-3">
+      {/* Doughnut Chart + Legend */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 my-3">
+        {/* Doughnut with center stat */}
         <div className="relative w-36 h-36 flex-shrink-0 flex items-center justify-center">
           <Doughnut data={chartData} options={options} />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -69,6 +72,7 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
           </div>
         </div>
 
+        {/* Legend List */}
         <div className="flex-1 w-full space-y-2.5">
           {distribution.map((item) => {
             const colorClass =

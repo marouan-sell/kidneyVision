@@ -18,6 +18,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
 }) => {
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
+      {/* Card Header */}
       <div>
         <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
           <div>
@@ -33,6 +34,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
           </div>
         </div>
 
+        {/* Visual Multi-segment Progress Bar */}
         <div className="mt-2.5">
           <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 mb-1">
             <span>Diagnostic Distribution</span>
@@ -42,6 +44,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
           </div>
 
           <div className="w-full h-2.5 rounded-full bg-slate-100 flex overflow-hidden p-0.5 gap-0.5">
+            {/* Normal Bar */}
             {metrics.normalScans > 0 && (
               <div
                 className="h-full rounded-l-full bg-emerald-500 transition-all duration-500 cursor-pointer hover:opacity-90"
@@ -50,6 +53,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
                 title={`Normal: ${metrics.normalScans} (${metrics.normalRate}%)`}
               />
             )}
+            {/* Nephrolithiasis Bar */}
             {metrics.stoneScans > 0 && (
               <div
                 className="h-full bg-rose-500 transition-all duration-500 cursor-pointer hover:opacity-90"
@@ -60,6 +64,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
                 title={`Nephrolithiasis: ${metrics.stoneScans} (${metrics.stonePositivityRate}%)`}
               />
             )}
+            {/* Cyst Bar */}
             {metrics.cystScans > 0 && (
               <div
                 className="h-full bg-teal-500 transition-all duration-500 cursor-pointer hover:opacity-90"
@@ -68,6 +73,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
                 title={`Renal Cyst: ${metrics.cystScans} (${metrics.cystRate}%)`}
               />
             )}
+            {/* Tumor Bar */}
             {metrics.tumorScans > 0 && (
               <div
                 className="h-full bg-purple-600 transition-all duration-500 cursor-pointer hover:opacity-90"
@@ -76,6 +82,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
                 title={`Renal Tumor / Mass: ${metrics.tumorScans} (${metrics.tumorRate}%)`}
               />
             )}
+            {/* Pending Bar */}
             {metrics.pendingScans > 0 && (
               <div
                 className="h-full rounded-r-full bg-amber-400 transition-all duration-500 cursor-pointer hover:opacity-90"
@@ -84,6 +91,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
                 title={`Pending Review: ${metrics.pendingScans} (${metrics.pendingRate}%)`}
               />
             )}
+            {/* Rejected Bar */}
             {metrics.rejectedScans > 0 && (
               <div
                 className="h-full rounded-r-full bg-slate-400 transition-all duration-500 cursor-pointer hover:opacity-90"
@@ -94,6 +102,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             )}
           </div>
 
+          {/* Legend row */}
           <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-2 mt-1.5 text-[10px] text-slate-500">
             <span className="flex items-center gap-1 cursor-pointer" onClick={() => onSelectDiagnosis(selectedDiagnosis === 'normal' ? 'all' : 'normal')}>
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -124,7 +133,9 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
           </div>
         </div>
 
+        {/* 5 Cohesive Clinical Cards: 4 Classes + Pending */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-3">
+          {/* 1. Normal Card */}
           <button
             type="button"
             onClick={() => onSelectDiagnosis(selectedDiagnosis === 'normal' ? 'all' : 'normal')}
@@ -151,6 +162,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             </div>
           </button>
 
+          {/* 2. Nephrolithiasis Card */}
           <button
             type="button"
             onClick={() =>
@@ -179,6 +191,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             </div>
           </button>
 
+          {/* 3. Renal Cyst Card */}
           <button
             type="button"
             onClick={() => onSelectDiagnosis(selectedDiagnosis === 'cyst' ? 'all' : 'cyst')}
@@ -205,6 +218,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             </div>
           </button>
 
+          {/* 4. Renal Tumor Card */}
           <button
             type="button"
             onClick={() => onSelectDiagnosis(selectedDiagnosis === 'tumor' ? 'all' : 'tumor')}
@@ -231,6 +245,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             </div>
           </button>
 
+          {/* 5. Pending Review Card */}
           <button
             type="button"
             onClick={() => onSelectDiagnosis(selectedDiagnosis === 'pending' ? 'all' : 'pending')}
@@ -257,6 +272,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
         </div>
       </div>
 
+      {/* Card Footer */}
       {selectedDiagnosis !== 'all' ? (
         <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-end text-xs text-slate-500">
           <button
