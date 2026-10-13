@@ -20,8 +20,8 @@ export function KidneyMark({ className = "h-9 w-9" }: { className?: string }) {
       {/* Anatomical Renal Cortex Outline & Medulla Silhouette */}
       <path
         d="M32 7C20.5 7 11 15.5 9 27C7.2 37.4 12.8 48 23 53.5C28.2 56.3 34.5 56.5 39 52C43.5 47.5 42 41.5 39.5 36.5C37.5 32.5 37.5 28.5 40 24.5C43 19.5 47 16 45 11.5C43.2 7.5 37.8 7 32 7Z"
-        fill="url(#kv-inner-glow)"
-        stroke="url(#kv-renal-gradient)"
+        fill="#eff6ff"
+        stroke="#2563eb"
         strokeWidth="3.2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -30,19 +30,19 @@ export function KidneyMark({ className = "h-9 w-9" }: { className?: string }) {
       {/* Ultrasound Acoustic Waves / Renal Calyx Conduits */}
       <path
         d="M21 21C25 17.5 31 17 36 19.5"
-        stroke="url(#kv-pulse-gradient)"
+        stroke="#38bdf8"
         strokeWidth="2.4"
         strokeLinecap="round"
       />
       <path
         d="M18 29C23 25.5 30 25.5 35 29"
-        stroke="url(#kv-pulse-gradient)"
+        stroke="#38bdf8"
         strokeWidth="2.4"
         strokeLinecap="round"
       />
       <path
         d="M19 37C23 34.5 29 35 33 39"
-        stroke="url(#kv-pulse-gradient)"
+        stroke="#38bdf8"
         strokeWidth="2.4"
         strokeLinecap="round"
       />
@@ -50,15 +50,11 @@ export function KidneyMark({ className = "h-9 w-9" }: { className?: string }) {
       {/* Renal Hilum & Pelvis Vascular Junction */}
       <path
         d="M38 27C34 29 32 33 34 38C35.5 41.8 39 44.5 42 48"
-        stroke="url(#kv-renal-gradient)"
+        stroke="#1d4ed8"
         strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-
-      {/* Precision Diagnostic Focal Node */}
-      <circle cx="27" cy="30" r="3" fill="#2563eb" />
-      <circle cx="27" cy="30" r="5.5" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="2.5 2" />
     </svg>
   );
 }

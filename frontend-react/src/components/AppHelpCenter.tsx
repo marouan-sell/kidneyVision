@@ -142,7 +142,7 @@ export default function AppHelpCenter() {
           className="inline-flex items-center gap-2 text-xs font-bold text-[#2563eb] hover:text-[#004ac6] bg-white px-3.5 py-2 rounded-xl border border-[#c3c6d7] shadow-xs transition-all hover:-translate-x-0.5 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>{isLoggedIn ? "← Back to Dashboard" : "← Back to Home"}</span>
+          <span>{isLoggedIn ? "Back to Dashboard" : "Back to Home"}</span>
         </button>
 
         <div className="flex items-center gap-2 text-xs text-[#737686] font-medium">

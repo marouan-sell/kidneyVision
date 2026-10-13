@@ -301,8 +301,16 @@ export default function GuestAnalysis() {
                         return (
                           <div key={cls} className="space-y-1">
                             <div className="flex items-center justify-between text-xs font-medium">
-                              <span className={isPred ? "font-bold text-[#131b2e]" : "text-[#434655]"}>
-                                {cls} {isPred && "★ (Primary Finding)"}
+                              <span className="flex items-center gap-1.5">
+                                <span className={isPred ? "font-bold text-[#131b2e]" : "text-[#434655]"}>
+                                  {cls}
+                                </span>
+                                {isPred && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-[#2563eb]">
+                                    <CheckCircle2 className="w-2.5 h-2.5 text-[#2563eb]" />
+                                    Primary Finding
+                                  </span>
+                                )}
                               </span>
                               <span className="font-mono text-xs">{pct}%</span>
                             </div>

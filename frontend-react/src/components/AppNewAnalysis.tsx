@@ -279,8 +279,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </h4>
               <p className="font-sans text-xs text-red-700 mt-1 leading-relaxed">{clinicalError.message}</p>
               {clinicalError.suggestion && (
-                <p className="font-sans text-[11px] text-red-800 bg-red-100/60 p-2 rounded-md mt-2 font-medium">
-                  💡 {clinicalError.suggestion}
+                <p className="font-sans text-[11px] text-red-800 bg-red-100/60 p-2 rounded-md mt-2 font-medium flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-red-700 shrink-0" />
+                  <span>{clinicalError.suggestion}</span>
                 </p>
               )}
             </div>
@@ -650,11 +651,11 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </div>
             </div>
 
-            <div className="p-5 grid md:grid-cols-2 gap-5">
+            <div className="p-5 flex flex-col space-y-6">
               
-              {/* Scan viewport panel */}
+              {/* Scan viewport panel (Picture First) */}
               <div className="space-y-3">
-                <div className={`rounded-xl border relative overflow-hidden flex items-center justify-center group transition-all duration-300 aspect-[4/3] w-full min-h-[280px] max-h-[460px] bg-slate-950 ${
+                <div className={`rounded-xl border relative overflow-hidden flex items-center justify-center group transition-all duration-300 aspect-video sm:aspect-[16/10] w-full min-h-[300px] max-h-[520px] bg-slate-950 ${
                   uploadedFilePreview
                     ? "border-[#c3c6d7]"
                     : "bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#edf2f9] border-2 border-dashed border-[#c3c6d7]"
@@ -910,14 +911,14 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       </div>
                     </div>
 
-                    {/* 4-Class Softmax Probability Cards */}
+                    {/* 4-Class Softmax Probability Cards Across All 4 */}
                     {activeAnalysis.classProbabilities && (
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                           <span>ConvNeXt-Tiny 4-Class Probability Spectrum</span>
                           <span className="font-mono text-[9.5px] text-slate-500">Softmax Normalized</span>
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                           {/* Cyst */}
                           <div className="bg-sky-50 border border-sky-200 rounded-lg p-2 text-center">
                             <div className="text-[10px] text-sky-800 font-bold uppercase tracking-wider">Cyst</div>
@@ -1133,7 +1134,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   className="px-2.5 py-1 bg-[#2563eb] hover:bg-[#004ac6] text-white text-[10.5px] font-bold rounded-md flex items-center gap-1 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {isSavingNotes ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                  {isSavingNotes ? "Saving..." : noteSavedSuccess ? "Saved to Report ✓" : "Save Notes"}
+                  {isSavingNotes ? "Saving..." : noteSavedSuccess ? "Saved to Report" : "Save Notes"}
                 </button>
               </div>
               <textarea
@@ -1147,8 +1148,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   * Signing this addendum logs the exact credentials and timestamp of your active clinician session.
                 </span>
                 {noteSavedSuccess && (
-                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    ✓ Saved to patient record & PDF report
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>Saved to patient record & PDF report</span>
                   </span>
                 )}
               </div>

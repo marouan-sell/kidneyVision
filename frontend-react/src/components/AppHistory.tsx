@@ -8,7 +8,8 @@ import { Link } from "react-router-dom";
 import { 
   Search, Calendar, Filter, Eye, Trash2, Sliders, X, 
   ChevronRight, ChevronLeft, Loader2, Award, ClipboardCheck, ArrowUpRight, CheckCircle2, AlertCircle, RefreshCw,
-  FileText, Download, FileDown, Sparkles, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck
+  FileText, Download, FileDown, Sparkles, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck,
+  ChevronDown, Info, Check
 } from "lucide-react";
 import { getAnalyses, deleteAnalysis, downloadReport, updateAnalysis, getReportPdfBlobUrl } from "../services";
 import { CLINICAL_SCAN_FALLBACK_SVG } from "../services/client";
@@ -258,7 +259,7 @@ export default function AppHistory() {
             >
               <Calendar className="w-4 h-4 text-[#737686]" />
               {dateFilter}
-              <span className="text-[10px] text-[#737686]">▼</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#737686]" />
             </button>
 
             {showDateDropdown && (
@@ -290,7 +291,7 @@ export default function AppHistory() {
             >
               <Filter className="w-4 h-4 text-[#737686]" />
               {statusFilter}
-              <span className="text-[10px] text-[#737686]">▼</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#737686]" />
             </button>
             
             {showFilterDropdown && (
@@ -332,7 +333,10 @@ export default function AppHistory() {
               <h4 className="font-bold text-xs">{notification.title}</h4>
               <p className="mt-0.5 opacity-90">{notification.message}</p>
               {notification.suggestion && (
-                <p className="mt-1 text-[11px] font-medium opacity-80 italic">💡 {notification.suggestion}</p>
+                <p className="mt-1 text-[11px] font-medium opacity-80 italic flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+                  <span>{notification.suggestion}</span>
+                </p>
               )}
             </div>
           </div>
@@ -968,8 +972,9 @@ export default function AppHistory() {
                   </div>
                 )}
                 {noteSavedFeedback && (
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
-                    ✓ Addendum notes saved to database and PDF report
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>Addendum notes saved to database and PDF report</span>
                   </span>
                 )}
               </div>
