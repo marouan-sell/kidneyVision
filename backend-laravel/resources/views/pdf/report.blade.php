@@ -657,6 +657,11 @@
                     </table>
                 </td>
                 <td style="width: 30%; vertical-align: middle; text-align: right;">
+                    @if(!empty($signatureBase64))
+                        <div style="margin-bottom: 3px; text-align: right;">
+                            <img src="{{ $signatureBase64 }}" style="max-height: 36px; max-width: 140px; display: inline-block;" alt="Attending Radiologist Signature">
+                        </div>
+                    @endif
                     <div class="cert-verified serif">Digitally verified</div>
                     <div class="cert-verified-sub">KidneyVision AI Platform · PACS archived</div>
                 </td>

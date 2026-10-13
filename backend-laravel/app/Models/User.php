@@ -23,7 +23,10 @@ class User extends Authenticatable
         'password',
         'hospital',
         'role',
+        'avatar_path',
         'signature_configured',
+        'signature_path',
+        'signature_updated_at',
         'is_admin',
     ];
 
@@ -44,8 +47,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'signature_configured' => 'boolean',
+            'signature_updated_at' => 'datetime',
             'is_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Get full URL to user avatar image.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar_path) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', $this->avatar_path);
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        }
+
+        return asset('storage/' . $path);
+    }
+
+    /**
+     * Get full URL to user signature image.
+     */
+    public function getSignatureUrlAttribute(): ?string
+    {
+        if (!$this->signature_path) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', $this->signature_path);
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        }
+
+        return asset('storage/' . $path);
     }
 
     /**

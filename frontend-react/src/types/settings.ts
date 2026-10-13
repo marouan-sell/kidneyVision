@@ -37,7 +37,10 @@ export interface UserProfile {
   email: string;
   role: string;
   hospital: string;
+  avatar_url?: string | null;
   signature_configured: boolean;
+  signature_url?: string | null;
+  signature_updated_at?: string | null;
   is_admin: boolean;
   created_at?: string;
 }

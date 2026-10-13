@@ -19,6 +19,11 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'hospital' => $this->hospital,
+            'role' => $this->role ?? 'Radiologist',
+            'avatarUrl' => $this->avatar_url,
+            'avatar_url' => $this->avatar_url,
+            'signature_configured' => (bool) ($this->signature_configured ?? false),
+            'signature_url' => $this->signature_url,
             'created_at' => $this->created_at->toISOString(),
         ];
     }

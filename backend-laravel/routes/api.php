@@ -65,11 +65,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
 
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])
+        ->name('profile.avatar.update');
+
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])
+        ->name('profile.avatar.delete');
+
+    Route::post('/profile/signature', [ProfileController::class, 'updateSignature'])
+        ->name('profile.signature.update');
+
+    Route::delete('/profile/signature', [ProfileController::class, 'deleteSignature'])
+        ->name('profile.signature.delete');
+
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('profile.password');
 
     Route::post('/profile/revoke-sessions', [ProfileController::class, 'revokeSessions'])
         ->name('profile.revoke-sessions');
+
+    // Patients
+    Route::get('/patients', [\App\Http\Controllers\Api\V1\PatientController::class, 'index'])
+        ->name('patients.index');
+
+    Route::get('/patients/next-id', [\App\Http\Controllers\Api\V1\PatientController::class, 'nextId'])
+        ->name('patients.nextId');
 
     // System Settings
     Route::get('/settings', [SettingsController::class, 'index'])

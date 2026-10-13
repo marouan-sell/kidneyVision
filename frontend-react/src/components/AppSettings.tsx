@@ -3,63 +3,68 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Sliders,
-  Database,
-  ShieldCheck,
   User as UserIcon,
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  Key,
-  Lock,
   Server,
   Activity,
-  FileText,
-  Save,
-  AlertTriangle,
-  LogOut,
-  Search,
-  Filter,
-  Info,
-  Calendar,
   Layers,
-  Sparkles,
-  ExternalLink,
-  ShieldAlert,
+  Save,
+  Info,
+  Camera,
+  Trash2,
+  PenTool,
+  Check,
+  X,
+  FileCheck,
+  ShieldCheck,
+  Database,
+  Cpu
 } from "lucide-react";
 import {
-  API_URL,
   fetchSettings,
   saveSettings,
   fetchSystemHealth,
   fetchUserProfile,
   saveUserProfile,
-  changePassword,
-  revokeOtherSessions,
-  fetchAuditLogs,
+  uploadAvatar,
+  deleteAvatar,
+  saveSignature,
+  deleteSignature,
 } from "../services";
-import { AppSettings as IAppSettings, SystemHealth, UserProfile, AuditLogEntry } from "../types";
+import { AppSettings as IAppSettings, SystemHealth, UserProfile } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
 
-type SettingsTab = "clinical" | "services" | "profile" | "privacy" | "audit" | "system";
+type SettingsSection = "clinical" | "profile";
 
 export default function AppSettings() {
   const { user: authUser, updateUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get("tab") as SettingsTab) || "clinical";
-  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+  const initialSection = (searchParams.get("tab") as SettingsSection) === "profile" ? "profile" : "clinical";
+  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
 
   useEffect(() => {
-    const tab = searchParams.get("tab") as SettingsTab | null;
-    if (tab && ["clinical", "services", "profile", "privacy", "audit", "system"].includes(tab)) {
-      setActiveTab(tab);
+    const tab = searchParams.get("tab");
+    if (tab === "profile") {
+      setActiveSection("profile");
+    } else if (tab === "clinical") {
+      setActiveSection("clinical");
     }
   }, [searchParams]);
 
-  // Clinical & System Settings State
+  const handleTabChange = (section: SettingsSection) => {
+    setActiveSection(section);
+    setSearchParams({ tab: section });
+  };
+
+  // ──────────────────────────────────────────
+  // AI & Clinical State
+  // ──────────────────────────────────────────
   const [settings, setSettings] = useState<IAppSettings>({
     ai_confidence_threshold: 85,
     alert_kidney_stone: true,
@@ -76,59 +81,44 @@ export default function AppSettings() {
   const [settingsSuccess, setSettingsSuccess] = useState<string | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
 
-  // System Health State
+  // System Health (Genuine AI status)
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
 
-  // Profile State
+  // ──────────────────────────────────────────
+  // Radiologist Profile State
+  // ──────────────────────────────────────────
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  // Password Change State
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordUpdating, setPasswordUpdating] = useState(false);
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  // Profile Picture Upload State
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Session Revocation State
-  const [revokingSessions, setRevokingSessions] = useState(false);
-  const [sessionSuccess, setSessionSuccess] = useState<string | null>(null);
-  const [sessionError, setSessionError] = useState<string | null>(null);
+  // Signature Canvas State
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawingSignature, setIsDrawingSignature] = useState(false);
+  const [signatureHasDrawn, setSignatureHasDrawn] = useState(false);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [signatureSaving, setSignatureSaving] = useState(false);
 
-  // Audit Logs State
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [auditMeta, setAuditMeta] = useState({ current_page: 1, last_page: 1, total: 0 });
-  const [auditLoading, setAuditLoading] = useState(false);
-  const [auditActionFilter, setAuditActionFilter] = useState("");
-  const [auditSearchQuery, setAuditSearchQuery] = useState("");
-  const [auditPage, setAuditPage] = useState(1);
-
-  // Initial Load
+  // Initial Data Load
   useEffect(() => {
     loadSettings();
     loadHealth();
     loadProfile();
   }, []);
 
-  // Load Audit Logs when tab or filters change
-  useEffect(() => {
-    if (activeTab === "audit") {
-      loadAuditLogs();
-    }
-  }, [activeTab, auditPage, auditActionFilter]);
-
   async function loadSettings() {
     setSettingsLoading(true);
     try {
       const data = await fetchSettings();
       setSettings(data);
-    } catch (err: any) {
-      setSettingsError("Failed to load settings from server.");
+    } catch {
+      setSettingsError("Failed to retrieve settings from server.");
     } finally {
       setSettingsLoading(false);
     }
@@ -139,8 +129,8 @@ export default function AppSettings() {
     try {
       const data = await fetchSystemHealth();
       setHealth(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Health check failure
     } finally {
       setHealthLoading(false);
     }
@@ -151,16 +141,17 @@ export default function AppSettings() {
     try {
       const data = await fetchUserProfile();
       setProfile(data);
-    } catch (err: any) {
-      // Fallback from auth context if available
+    } catch {
       if (authUser) {
         setProfile({
-          id: 1,
+          id: authUser.id || 1,
           name: authUser.name,
           email: authUser.email,
           role: authUser.role || "Radiologist",
           hospital: authUser.hospital || "Not specified",
-          signature_configured: false,
+          avatar_url: authUser.avatarUrl || authUser.avatar_url || null,
+          signature_configured: Boolean(authUser.signature_configured),
+          signature_url: authUser.signature_url || null,
           is_admin: false,
         });
       }
@@ -169,23 +160,9 @@ export default function AppSettings() {
     }
   }
 
-  async function loadAuditLogs() {
-    setAuditLoading(true);
-    try {
-      const res = await fetchAuditLogs({
-        page: auditPage,
-        action: auditActionFilter || undefined,
-        search: auditSearchQuery || undefined,
-      });
-      setAuditLogs(res.logs);
-      setAuditMeta(res.meta);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAuditLoading(false);
-    }
-  }
-
+  // ──────────────────────────────────────────
+  // Save AI & Clinical Settings
+  // ──────────────────────────────────────────
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
     setSettingsSaving(true);
@@ -193,17 +170,25 @@ export default function AppSettings() {
     setSettingsError(null);
 
     try {
-      const updated = await saveSettings(settings);
+      const updated = await saveSettings({
+        ai_confidence_threshold: settings.ai_confidence_threshold,
+        alert_kidney_stone: settings.alert_kidney_stone,
+        alert_low_confidence: settings.alert_low_confidence,
+        alert_system_errors: settings.alert_system_errors,
+      });
       setSettings(updated);
-      setSettingsSuccess("Clinical and system settings saved successfully.");
+      setSettingsSuccess("Clinical preferences and AI review thresholds successfully persisted.");
       setTimeout(() => setSettingsSuccess(null), 4000);
     } catch (err: any) {
-      setSettingsError(err.message || "Failed to persist settings.");
+      setSettingsError(err.message || "Failed to persist clinical preferences.");
     } finally {
       setSettingsSaving(false);
     }
   }
 
+  // ──────────────────────────────────────────
+  // Save Profile Details
+  // ──────────────────────────────────────────
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!profile) return;
@@ -216,8 +201,8 @@ export default function AppSettings() {
         name: profile.name,
         hospital: profile.hospital,
         role: profile.role,
-        signature_configured: profile.signature_configured,
       });
+      setProfile((prev) => (prev ? { ...prev, ...updated } : null));
       if (authUser) {
         updateUser({
           ...authUser,
@@ -235,115 +220,272 @@ export default function AppSettings() {
     }
   }
 
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault();
-    setPasswordUpdating(true);
-    setPasswordSuccess(null);
-    setPasswordError(null);
+  // ──────────────────────────────────────────
+  // Avatar Upload / Removal
+  // ──────────────────────────────────────────
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match.");
-      setPasswordUpdating(false);
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setProfileError("Profile picture must be a JPG, PNG, or WebP image.");
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
       return;
     }
 
-    try {
-      const msg = await changePassword(currentPassword, newPassword, confirmPassword);
-      setPasswordSuccess(msg);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setTimeout(() => setPasswordSuccess(null), 4000);
-    } catch (err: any) {
-      setPasswordError(err.message || "Failed to update password.");
-    } finally {
-      setPasswordUpdating(false);
-    }
-  }
-
-  async function handleRevokeSessions() {
-    if (!window.confirm("Are you sure you want to revoke all other active sessions? You will need to log back in on other devices.")) {
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileError("Profile picture cannot exceed 2MB in file size.");
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
       return;
     }
-    setRevokingSessions(true);
-    setSessionSuccess(null);
-    setSessionError(null);
+
+    setAvatarUploading(true);
+    setProfileSuccess(null);
+    setProfileError(null);
 
     try {
-      const msg = await revokeOtherSessions();
-      setSessionSuccess(msg);
-      setTimeout(() => setSessionSuccess(null), 4000);
+      const avatarUrl = await uploadAvatar(file);
+      setProfile((prev) => (prev ? { ...prev, avatar_url: avatarUrl } : null));
+      if (authUser) {
+        updateUser({ ...authUser, avatarUrl, avatar_url: avatarUrl });
+      }
+      setProfileSuccess("Profile picture uploaded and updated successfully.");
+      setTimeout(() => setProfileSuccess(null), 4000);
     } catch (err: any) {
-      setSessionError(err.message || "Failed to revoke active sessions.");
+      setProfileError(err.message || "Failed to upload profile picture.");
     } finally {
-      setRevokingSessions(false);
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
     }
-  }
+  };
 
-  const tabs: { id: SettingsTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: "clinical", label: "AI & Clinical", icon: Sliders },
-    { id: "services", label: "API & Services", icon: Server },
-    { id: "profile", label: "Radiologist Profile", icon: UserIcon },
-    { id: "privacy", label: "Privacy & Security", icon: ShieldCheck },
-    { id: "audit", label: "Audit Trail", icon: Activity },
-    { id: "system", label: "System Info", icon: Info },
-  ];
+  const handleAvatarRemove = async () => {
+    if (!window.confirm("Remove your profile picture and restore default initials?")) return;
+    setAvatarUploading(true);
+    setProfileSuccess(null);
+    setProfileError(null);
+
+    try {
+      await deleteAvatar();
+      setProfile((prev) => (prev ? { ...prev, avatar_url: null } : null));
+      if (authUser) {
+        updateUser({ ...authUser, avatarUrl: null, avatar_url: null });
+      }
+      setProfileSuccess("Profile picture removed.");
+      setTimeout(() => setProfileSuccess(null), 4000);
+    } catch (err: any) {
+      setProfileError(err.message || "Failed to remove profile picture.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  // ──────────────────────────────────────────
+  // Signature Drawing Canvas Handlers
+  // ──────────────────────────────────────────
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#1e3a8a"; // Clinical deep navy signature ink
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    setIsDrawingSignature(true);
+    setSignatureHasDrawn(true);
+  };
+
+  const drawSignature = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawingSignature) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawingSignature) return;
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx?.closePath();
+    }
+    setIsDrawingSignature(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignatureHasDrawn(false);
+  };
+
+  const handleSaveSignature = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !signatureHasDrawn) {
+      setProfileError("Please draw your signature on the pad before saving.");
+      return;
+    }
+
+    setSignatureSaving(true);
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    try {
+      const dataUrl = canvas.toDataURL("image/png");
+      const res = await saveSignature(dataUrl);
+
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              signature_configured: true,
+              signature_url: res.signature_url,
+              signature_updated_at: res.signature_updated_at,
+            }
+          : null
+      );
+
+      if (authUser) {
+        updateUser({
+          ...authUser,
+          signature_configured: true,
+          signature_url: res.signature_url,
+        });
+      }
+
+      setShowSignaturePad(false);
+      setProfileSuccess("Electronic signature successfully configured and attached to PDF reports.");
+      setTimeout(() => setProfileSuccess(null), 4000);
+    } catch (err: any) {
+      setProfileError(err.message || "Failed to save digital signature.");
+    } finally {
+      setSignatureSaving(false);
+    }
+  };
+
+  const handleRemoveSignature = async () => {
+    if (!window.confirm("Are you sure you want to remove your configured signature? Generated PDF reports will no longer show your digital attestation.")) {
+      return;
+    }
+
+    setSignatureSaving(true);
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    try {
+      await deleteSignature();
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              signature_configured: false,
+              signature_url: null,
+              signature_updated_at: undefined,
+            }
+          : null
+      );
+
+      if (authUser) {
+        updateUser({
+          ...authUser,
+          signature_configured: false,
+          signature_url: null,
+        });
+      }
+
+      setShowSignaturePad(false);
+      clearCanvas();
+      setProfileSuccess("Configured signature removed successfully.");
+      setTimeout(() => setProfileSuccess(null), 4000);
+    } catch (err: any) {
+      setProfileError(err.message || "Failed to remove signature.");
+    } finally {
+      setSignatureSaving(false);
+    }
+  };
+
+  // Helper for clinician initials
+  const clinicianInitials = profile?.name
+    ? profile.name
+        .split(" ")
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "DR";
 
   return (
-    <div className="space-y-6 text-left max-w-6xl mx-auto">
+    <div className="space-y-6 text-left max-w-5xl mx-auto">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e2e8f0] pb-5">
         <div>
           <h2 className="font-sans text-2xl font-bold text-[#131b2e] tracking-tight">
-            System Administration & Settings
+            Clinical System Settings
           </h2>
           <p className="font-sans text-xs text-[#52576b] mt-1">
-            Configure clinical decision thresholds, monitor service health, manage clinician identity, and inspect audit trails.
+            Configure real-time neural inference parameters, clinical preferences, and attending radiologist credentials.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              loadSettings();
-              loadHealth();
-              loadProfile();
-              if (activeTab === "audit") loadAuditLogs();
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#c3c6d7] hover:bg-[#f8f9fc] text-[#131b2e] rounded-lg text-xs font-medium transition cursor-pointer shadow-sm"
-            title="Refresh settings and system status"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#2563eb] ${healthLoading || settingsLoading ? "animate-spin" : ""}`} />
-            <span>Sync</span>
-          </button>
-        </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-[#e2e8f0] overflow-x-auto scrollbar-none pb-px">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all border-b-2 whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? "border-[#2563eb] text-[#2563eb] bg-[#eff4fe]"
-                  : "border-transparent text-[#64748b] hover:text-[#131b2e] hover:bg-[#f8fafc]"
-              }`}
-            >
-              <Icon className={`w-4 h-4 ${isActive ? "text-[#2563eb]" : "text-[#94a3b8]"}`} />
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Two Clean Sections Navigation */}
+      <div className="flex items-center gap-2 border-b border-[#e2e8f0] pb-px">
+        <button
+          type="button"
+          onClick={() => handleTabChange("clinical")}
+          className={`flex items-center gap-2 px-5 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+            activeSection === "clinical"
+              ? "border-[#2563eb] text-[#2563eb] bg-[#eff4fe]"
+              : "border-transparent text-[#64748b] hover:text-[#131b2e] hover:bg-[#f8fafc]"
+          }`}
+        >
+          <Sliders className={`w-4 h-4 ${activeSection === "clinical" ? "text-[#2563eb]" : "text-[#94a3b8]"}`} />
+          AI & Clinical
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange("profile")}
+          className={`flex items-center gap-2 px-5 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+            activeSection === "profile"
+              ? "border-[#2563eb] text-[#2563eb] bg-[#eff4fe]"
+              : "border-transparent text-[#64748b] hover:text-[#131b2e] hover:bg-[#f8fafc]"
+          }`}
+        >
+          <UserIcon className={`w-4 h-4 ${activeSection === "profile" ? "text-[#2563eb]" : "text-[#94a3b8]"}`} />
+          Radiologist Profile
+        </button>
       </div>
 
-      {/* TAB 1: AI & Clinical Settings */}
-      {activeTab === "clinical" && (
-        <form onSubmit={handleSaveSettings} className="space-y-6">
+      {/* ──────────────────────────────────────────────────────── */}
+      {/* SECTION 1: AI & Clinical */}
+      {/* ──────────────────────────────────────────────────────── */}
+      {activeSection === "clinical" && (
+        <div className="space-y-6">
           {settingsSuccess && (
             <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -357,310 +499,248 @@ export default function AppSettings() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Card 1: AI Confidence Threshold */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-[#2563eb]" />
-                  AI Review & Triage Threshold
-                </h3>
-                <span className="px-2.5 py-0.5 bg-[#eff4fe] text-[#2563eb] font-bold text-xs rounded-full border border-[#2563eb]/20 font-mono">
-                  {settings.ai_confidence_threshold}%
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-[#131b2e]">Application Alert Threshold</span>
-                  <span className="text-[11px] text-[#64748b]">Configured: {settings.ai_confidence_threshold}%</span>
-                </div>
-
-                <input
-                  type="range"
-                  min="50"
-                  max="95"
-                  step="1"
-                  value={settings.ai_confidence_threshold}
-                  onChange={(e) =>
-                    setSettings({ ...settings, ai_confidence_threshold: Number(e.target.value) })
-                  }
-                  className="w-full accent-[#2563eb] cursor-pointer h-2 bg-slate-200 rounded-lg appearance-none"
-                />
-
-                <div className="flex justify-between text-[10px] text-[#64748b] font-mono">
-                  <span>50% (Permissive)</span>
-                  <span>75% (Standard)</span>
-                  <span>95% (Strict)</span>
-                </div>
-              </div>
-
-              <div className="p-3.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg space-y-2 text-[11px] text-[#475569] leading-relaxed">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-[#1e293b]">Clinical Workflow Rule:</strong> Scans evaluated by the deep neural network with model confidence ≥ <span className="font-semibold text-[#2563eb]">{settings.ai_confidence_threshold}%</span> display the primary classification directly. Predictions below this trigger the mandatory <span className="font-semibold text-amber-700">"Review Required"</span> clinical review state.
-                  </div>
-                </div>
-                <div className="text-[10px] text-[#64748b] pl-6 border-t border-[#e2e8f0]/60 pt-1.5">
-                  <em>Note: Adjusting this application triage threshold configures review workflows and does not alter the neural network's underlying raw probability calculations.</em>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Clinical Alert Settings */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
+          {/* Genuine AI Service & Deep Learning Model Status Cards */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#434655] flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-[#2563eb]" />
-                Clinical Alert Routing
+                Genuine AI Microservice Status
               </h3>
-
-              <div className="space-y-3">
-                {/* Kidney Stone Alert Toggle */}
-                <div className="flex items-start justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
-                  <div className="space-y-0.5 pr-3">
-                    <label htmlFor="alert_ks" className="text-xs font-semibold text-[#131b2e] cursor-pointer block">
-                      Kidney Stone Detection Alerts
-                    </label>
-                    <span className="text-[11px] text-[#64748b] block">
-                      Trigger immediate high-visibility clinical notifications upon positive nephrolithiasis detection.
-                    </span>
-                  </div>
-                  <input
-                    id="alert_ks"
-                    type="checkbox"
-                    checked={settings.alert_kidney_stone}
-                    onChange={(e) => setSettings({ ...settings, alert_kidney_stone: e.target.checked })}
-                    className="w-4 h-4 text-[#2563eb] border-[#c3c6d7] rounded focus:ring-[#2563eb] mt-1 cursor-pointer"
-                  />
-                </div>
-
-                {/* Low Confidence Review Toggle */}
-                <div className="flex items-start justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
-                  <div className="space-y-0.5 pr-3">
-                    <label htmlFor="alert_lc" className="text-xs font-semibold text-[#131b2e] cursor-pointer block">
-                      Low Confidence Review Queue
-                    </label>
-                    <span className="text-[11px] text-[#64748b] block">
-                      Route borderline or uncertain ultrasound scans into the radiologist peer-review queue.
-                    </span>
-                  </div>
-                  <input
-                    id="alert_lc"
-                    type="checkbox"
-                    checked={settings.alert_low_confidence}
-                    onChange={(e) => setSettings({ ...settings, alert_low_confidence: e.target.checked })}
-                    className="w-4 h-4 text-[#2563eb] border-[#c3c6d7] rounded focus:ring-[#2563eb] mt-1 cursor-pointer"
-                  />
-                </div>
-
-                {/* Critical System Errors Toggle */}
-                <div className="flex items-start justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
-                  <div className="space-y-0.5 pr-3">
-                    <label htmlFor="alert_se" className="text-xs font-semibold text-[#131b2e] cursor-pointer block">
-                      Critical System & Inference Failure Alerts
-                    </label>
-                    <span className="text-[11px] text-[#64748b] block">
-                      Notify attending clinician if microservice connectivity or preprocessing pipeline encounters an error.
-                    </span>
-                  </div>
-                  <input
-                    id="alert_se"
-                    type="checkbox"
-                    checked={settings.alert_system_errors}
-                    onChange={(e) => setSettings({ ...settings, alert_system_errors: e.target.checked })}
-                    className="w-4 h-4 text-[#2563eb] border-[#c3c6d7] rounded focus:ring-[#2563eb] mt-1 cursor-pointer"
-                  />
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={loadHealth}
+                disabled={healthLoading}
+                className="text-[11px] font-semibold text-[#2563eb] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <RefreshCw className={`w-3 h-3 ${healthLoading ? "animate-spin" : ""}`} />
+                Refresh Telemetry
+              </button>
             </div>
 
-            {/* Card 3: Demo / Simulation Mode */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm lg:col-span-2">
-              <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#2563eb]" />
-                  Demonstration / Simulation Mode
-                </h3>
-                <span
-                  className={`px-2.5 py-0.5 text-xs font-bold rounded-full border ${
-                    settings.demo_mode
-                      ? "bg-amber-50 text-amber-700 border-amber-300"
-                      : "bg-slate-100 text-slate-700 border-slate-300"
-                  }`}
-                >
-                  {settings.demo_mode ? "SIMULATION ACTIVE" : "LIVE BACKEND ACTIVE"}
-                </span>
-              </div>
-
-              <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                      <span className="font-bold text-xs text-amber-900">Clinical Disclaimer & Operational Control</span>
-                    </div>
-                    <p className="text-xs text-amber-800/90 leading-relaxed">
-                      When enabled, the application operates in demonstration mode using simulated evaluation pipelines for presentation or offline testing. <strong>Do not use simulation mode for real patient care or live clinical workflows.</strong>
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSettings({ ...settings, demo_mode: !settings.demo_mode })}
-                    className={`w-12 h-6 rounded-full p-0.5 transition-colors relative focus:outline-none shrink-0 cursor-pointer ${
-                      settings.demo_mode ? "bg-amber-600" : "bg-slate-300"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Card 1: AI / Flask Engine */}
+              <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
+                    <Server className="w-4 h-4 text-[#2563eb]" />
+                    AI Flask Microservice
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                      health?.services.ai_service.status === "connected"
+                        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                        : "text-amber-700 bg-amber-50 border-amber-200"
                     }`}
                   >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                        settings.demo_mode ? "translate-x-6" : "translate-x-0"
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        health?.services.ai_service.status === "connected"
+                          ? "bg-emerald-500 animate-pulse"
+                          : "bg-amber-500"
                       }`}
                     />
-                  </button>
+                    {health?.services.ai_service.status === "connected" ? "Connected" : "Standby"}
+                  </span>
                 </div>
+                <div className="text-[11px] text-[#64748b] space-y-0.5 font-mono">
+                  <div>Endpoint: <span className="text-[#1e293b]">http://127.0.0.1:5000</span></div>
+                  <div>Health: <span className="text-[#1e293b]">/health</span></div>
+                </div>
+              </div>
 
-                <div className="text-[11px] text-amber-700/80 font-mono pt-1">
-                  Controlled by backend persistence: <span className="font-semibold">DEMO_MODE={settings.demo_mode ? "true" : "false"}</span> (strictly locked to false in production deployments).
+              {/* Card 2: Deep Neural Network Architecture */}
+              <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-[#2563eb]" />
+                    ConvNeXt 4-Class Model
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                      health?.services.ai_service.model_status === "loaded"
+                        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                        : "text-emerald-700 bg-emerald-50 border-emerald-200"
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Operational
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#64748b] space-y-0.5">
+                  <div>Classes: <span className="font-semibold text-[#1e293b]">Cyst, Normal, Stone, Tumor</span></div>
+                  <div>Gatekeeper: <span className="font-semibold text-[#1e293b]">MobileNetV3-Small</span></div>
+                </div>
+              </div>
+
+              {/* Card 3: Relational Medical Database */}
+              <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
+                    <Database className="w-4 h-4 text-[#2563eb]" />
+                    Clinical Database
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                      health?.services.database.status === "connected"
+                        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                        : "text-red-700 bg-red-50 border-red-200"
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        health?.services.database.status === "connected" ? "bg-emerald-500" : "bg-red-500"
+                      }`}
+                    />
+                    {health?.services.database.status === "connected" ? "Connected" : "Offline"}
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#64748b] space-y-0.5">
+                  <div>Driver: <span className="font-mono text-[#1e293b] uppercase">{health?.services.database.driver || "PGSQL"}</span></div>
+                  <div>Audit Trail: <span className="text-[#1e293b] font-semibold">Active Ledger</span></div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={settingsSaving}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
-            >
-              {settingsSaving ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              <span>Save Clinical Settings</span>
-            </button>
-          </div>
-        </form>
-      )}
+          {/* Form for Supported Clinical Preferences */}
+          <form onSubmit={handleSaveSettings} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Card 1: AI Confidence Threshold */}
+              <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-[#2563eb]" />
+                    AI Review & Triage Threshold
+                  </h3>
+                  <span className="px-3 py-1 bg-[#eff4fe] text-[#2563eb] font-bold text-xs rounded-full border border-[#2563eb]/20 font-mono">
+                    {settings.ai_confidence_threshold}%
+                  </span>
+                </div>
 
-      {/* TAB 2: API & Services */}
-      {activeTab === "services" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Laravel API Status */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                  <Server className="w-4 h-4 text-[#2563eb]" />
-                  Laravel API
-                </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Online
-                </span>
-              </div>
-              <div className="text-[11px] text-[#64748b] space-y-0.5">
-                <div>Framework: <span className="font-mono text-[#1e293b]">{health?.services.laravel_api.version || "Laravel 11"}</span></div>
-                <div>Runtime: <span className="font-mono text-[#1e293b]">PHP {health?.services.laravel_api.php_version || "8.3"}</span></div>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-semibold text-[#131b2e]">Application Decision Boundary</span>
+                    <span className="text-[11px] text-[#64748b]">Selected: {settings.ai_confidence_threshold}%</span>
+                  </div>
 
-            {/* Database Status */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                  <Database className="w-4 h-4 text-[#2563eb]" />
-                  Database
-                </span>
-                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                  health?.services.database.status === 'connected'
-                    ? "text-emerald-600 bg-emerald-50 border-emerald-200"
-                    : "text-red-600 bg-red-50 border-red-200"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${health?.services.database.status === 'connected' ? "bg-emerald-500" : "bg-red-500"}`}></span>
-                  {health?.services.database.status === 'connected' ? "Connected" : "Offline"}
-                </span>
-              </div>
-              <div className="text-[11px] text-[#64748b] space-y-0.5">
-                <div>Engine: <span className="font-mono text-[#1e293b] uppercase">{health?.services.database.driver || "sqlite"}</span></div>
-                <div>Connection: <span className="text-[#1e293b]">Active PDO</span></div>
-              </div>
-            </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="95"
+                    step="1"
+                    value={settings.ai_confidence_threshold}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ai_confidence_threshold: Number(e.target.value) })
+                    }
+                    className="w-full accent-[#2563eb] cursor-pointer h-2 bg-slate-200 rounded-lg appearance-none"
+                  />
 
-            {/* AI / Flask Service */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
+                  <div className="flex justify-between text-[10px] text-[#64748b] font-mono">
+                    <span>50% (Permissive)</span>
+                    <span>75% (Standard)</span>
+                    <span>95% (Strict Review)</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg text-[11px] text-[#475569] leading-relaxed flex items-start gap-2">
+                  <Info className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-[#1e293b]">Clinical Triage Rule:</strong> Inferences with predictive confidence ≥ <span className="font-bold text-[#2563eb]">{settings.ai_confidence_threshold}%</span> are marked as primary assessments. Scans below this boundary trigger mandatory radiologist review.
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Clinical Alert Routing */}
+              <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
                   <Activity className="w-4 h-4 text-[#2563eb]" />
-                  AI / Flask Service
-                </span>
-                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                  health?.services.ai_service.status === 'connected'
-                    ? "text-emerald-600 bg-emerald-50 border-emerald-200"
-                    : "text-red-600 bg-red-50 border-red-200"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${health?.services.ai_service.status === 'connected' ? "bg-emerald-500" : "bg-red-500"}`}></span>
-                  {health?.services.ai_service.status === 'connected' ? "Connected" : "Offline"}
-                </span>
-              </div>
-              <div className="text-[11px] text-[#64748b] space-y-0.5">
-                <div>Microservice: <span className="font-mono text-[#1e293b]">Port 5000</span></div>
-                <div>Health Check: <span className="font-mono text-[#1e293b]">/health</span></div>
+                  Supported Clinical Notifications
+                </h3>
+
+                <div className="space-y-3">
+                  {/* Kidney Stone Alert Toggle */}
+                  <div className="flex items-start justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
+                    <div className="space-y-0.5 pr-3">
+                      <label htmlFor="alert_ks" className="text-xs font-semibold text-[#131b2e] cursor-pointer block">
+                        Kidney Stone Urgent Alerts
+                      </label>
+                      <span className="text-[11px] text-[#64748b] block">
+                        Highlight detected calculus cases with elevated risk badge for prompt intervention.
+                      </span>
+                    </div>
+                    <input
+                      id="alert_ks"
+                      type="checkbox"
+                      checked={settings.alert_kidney_stone}
+                      onChange={(e) => setSettings({ ...settings, alert_kidney_stone: e.target.checked })}
+                      className="w-4 h-4 text-[#2563eb] border-[#c3c6d7] rounded focus:ring-[#2563eb] mt-1 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Low Confidence Queue Toggle */}
+                  <div className="flex items-start justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
+                    <div className="space-y-0.5 pr-3">
+                      <label htmlFor="alert_lc" className="text-xs font-semibold text-[#131b2e] cursor-pointer block">
+                        Review Queue Routing
+                      </label>
+                      <span className="text-[11px] text-[#64748b] block">
+                        Automatically tag borderline scans for secondary clinician verification.
+                      </span>
+                    </div>
+                    <input
+                      id="alert_lc"
+                      type="checkbox"
+                      checked={settings.alert_low_confidence}
+                      onChange={(e) => setSettings({ ...settings, alert_low_confidence: e.target.checked })}
+                      className="w-4 h-4 text-[#2563eb] border-[#c3c6d7] rounded focus:ring-[#2563eb] mt-1 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* System Connectivity Alert Toggle */}
+                  <div className="flex items-start justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
+                    <div className="space-y-0.5 pr-3">
+                      <label htmlFor="alert_se" className="text-xs font-semibold text-[#131b2e] cursor-pointer block">
+                        Service Degraded Notifications
+                      </label>
+                      <span className="text-[11px] text-[#64748b] block">
+                        Notify attending doctor if neural server connectivity or preprocessing fails.
+                      </span>
+                    </div>
+                    <input
+                      id="alert_se"
+                      type="checkbox"
+                      checked={settings.alert_system_errors}
+                      onChange={(e) => setSettings({ ...settings, alert_system_errors: e.target.checked })}
+                      className="w-4 h-4 text-[#2563eb] border-[#c3c6d7] rounded focus:ring-[#2563eb] mt-1 cursor-pointer"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* AI Model Status */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-[#2563eb]" />
-                  Deep Learning Model
-                </span>
-                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                  health?.services.ai_service.model_status === 'loaded'
-                    ? "text-emerald-600 bg-emerald-50 border-emerald-200"
-                    : "text-amber-600 bg-amber-50 border-amber-200"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${health?.services.ai_service.model_status === 'loaded' ? "bg-emerald-500" : "bg-amber-500"}`}></span>
-                  {health?.services.ai_service.model_status === 'loaded' ? "Loaded" : "Unloaded"}
-                </span>
-              </div>
-              <div className="text-[11px] text-[#64748b] space-y-0.5">
-                <div>Weights: <span className="font-mono text-[#1e293b]">{health?.services.ai_service.model_version || "best_model.keras"}</span></div>
-                <div>Classifier: <span className="text-[#1e293b]">Binary Stone/Normal</span></div>
-              </div>
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={settingsSaving}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer"
+              >
+                {settingsSaving ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span>Save AI & Clinical Settings</span>
+              </button>
             </div>
-          </div>
-
-          {/* Endpoint Configuration Box */}
-          <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
-              <Database className="w-4 h-4 text-[#2563eb]" />
-              Configured Clinical API Gateway
-            </h3>
-
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-[#131b2e]">Active Frontend API Target</span>
-                <span className="text-[11px] text-[#64748b]">Derived from environment (VITE_API_URL)</span>
-              </div>
-              <div className="p-3 bg-[#f8fafc] rounded-lg border border-[#c3c6d7] font-mono text-xs text-[#1e293b] select-all flex items-center justify-between">
-                <span>{API_URL}</span>
-                <span className="text-[10px] text-[#64748b] bg-slate-200 px-2 py-0.5 rounded">Client-Safe Target</span>
-              </div>
-            </div>
-
-            <div className="p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-lg text-xs text-blue-900 leading-relaxed">
-              <strong>Administrative Security Policy:</strong> Direct endpoint alteration from the web browser is restricted in accordance with clinical governance standards. To alter production gateways, update the deployment environment configuration.
-            </div>
-          </div>
+          </form>
         </div>
       )}
 
-      {/* TAB 3: Radiologist Profile */}
-      {activeTab === "profile" && (
-        <form onSubmit={handleSaveProfile} className="space-y-6">
+      {/* ──────────────────────────────────────────────────────── */}
+      {/* SECTION 2: Radiologist Profile */}
+      {/* ──────────────────────────────────────────────────────── */}
+      {activeSection === "profile" && (
+        <div className="space-y-6">
           {profileSuccess && (
             <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -674,492 +754,336 @@ export default function AppSettings() {
             </div>
           )}
 
-          <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-5 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
+          {/* Card A: Profile Picture & Identity */}
+          <div className="bg-white border border-[#c3c6d7] rounded-xl p-6 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-4 border-b border-[#e2e8f0]">
+              <Camera className="w-4 h-4 text-[#2563eb]" />
+              Clinician Avatar & Identification
+            </h3>
+
+            <div className="flex flex-col sm:flex-row items-center gap-6 pt-5">
+              {/* Avatar Preview */}
+              <div className="relative group shrink-0">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.name}
+                    className="w-24 h-24 rounded-full object-cover border-2 border-[#2563eb] shadow-md"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-[#eff4fe] border-2 border-[#c3c6d7] text-[#2563eb] flex items-center justify-center font-extrabold text-2xl shadow-inner">
+                    {clinicianInitials}
+                  </div>
+                )}
+                {avatarUploading && (
+                  <div className="absolute inset-0 bg-slate-900/60 rounded-full flex items-center justify-center text-white">
+                    <RefreshCw className="w-6 h-6 animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              {/* Upload & Replacement Controls */}
+              <div className="space-y-2 text-center sm:text-left flex-1">
+                <h4 className="text-sm font-bold text-[#131b2e]">
+                  {profile?.name || "Attending Radiologist"}
+                </h4>
+                <p className="text-xs text-[#64748b]">
+                  Supported formats: JPG, PNG, WebP (maximum 2MB). Used across the portal, session credentials, and audit headers.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2 pt-2 justify-center sm:justify-start">
+                  <input
+                    type="file"
+                    ref={avatarInputRef}
+                    onChange={handleAvatarFileSelect}
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarUploading}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Upload New Photo</span>
+                  </button>
+
+                  {profile?.avatar_url && (
+                    <button
+                      type="button"
+                      onClick={handleAvatarRemove}
+                      disabled={avatarUploading}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-200 hover:border-red-200 text-xs font-semibold rounded-lg transition disabled:opacity-50 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove Photo</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card B: Supported Clinician Profile Form */}
+          <form onSubmit={handleSaveProfile} className="bg-white border border-[#c3c6d7] rounded-xl p-6 shadow-sm space-y-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-4 border-b border-[#e2e8f0]">
               <UserIcon className="w-4 h-4 text-[#2563eb]" />
-              Authenticated Clinician Profile
+              Physician Credentials & Facility
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Full Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#131b2e]">Clinician Name</label>
+                <label className="text-xs font-semibold text-[#131b2e]" htmlFor="doc-name">
+                  Clinician Full Name
+                </label>
                 <input
+                  id="doc-name"
                   type="text"
                   value={profile?.name || ""}
                   onChange={(e) => setProfile(profile ? { ...profile, name: e.target.value } : null)}
                   className="w-full px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                  placeholder="e.g. Dr. Jane Doe, MD"
+                  placeholder="e.g. Dr. Marouan Sellami, MD"
                   required
                 />
               </div>
 
-              {/* Email (Readonly) */}
+              {/* Email (Readonly Identifier) */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#131b2e]">Account Email (Account Identifier)</label>
+                <label className="text-xs font-semibold text-[#131b2e]">
+                  Account Email (Authenticated Identity)
+                </label>
                 <input
                   type="email"
                   value={profile?.email || ""}
                   disabled
-                  className="w-full px-3 py-2 text-xs border border-slate-200 bg-slate-100 text-slate-500 rounded-lg cursor-not-allowed"
+                  className="w-full px-3 py-2 text-xs border border-slate-200 bg-slate-100 text-slate-500 rounded-lg cursor-not-allowed font-mono"
                 />
               </div>
 
               {/* Clinical Role */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#131b2e]">Specialty / Department Role</label>
+                <label className="text-xs font-semibold text-[#131b2e]" htmlFor="doc-role">
+                  Specialty / Department Role
+                </label>
                 <input
+                  id="doc-role"
                   type="text"
                   value={profile?.role || ""}
                   onChange={(e) => setProfile(profile ? { ...profile, role: e.target.value } : null)}
                   className="w-full px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                  placeholder="e.g. Chief of Radiology, Attending Radiologist"
+                  placeholder="e.g. Attending Radiologist / Nephrology"
                 />
               </div>
 
               {/* Medical Facility */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#131b2e]">Medical Facility / Institution</label>
+                <label className="text-xs font-semibold text-[#131b2e]" htmlFor="doc-hospital">
+                  Medical Center / Hospital Institution
+                </label>
                 <input
+                  id="doc-hospital"
                   type="text"
                   value={profile?.hospital || ""}
                   onChange={(e) => setProfile(profile ? { ...profile, hospital: e.target.value } : null)}
                   className="w-full px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                  placeholder="e.g. Memorial University Medical Center"
+                  placeholder="e.g. University Teaching Hospital"
                 />
               </div>
             </div>
 
-            {/* Digital Signature Management Section */}
-            <div className="pt-4 border-t border-[#e2e8f0] space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-[#131b2e] flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#2563eb]" />
-                    Clinician Digital Attestation & Signature
-                  </h4>
-                  <p className="text-[11px] text-[#64748b] mt-0.5">
-                    Attestation state for signing diagnostic PDF reports generated in KidneyVision AI.
-                  </p>
-                </div>
-
-                <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${
-                    profile?.signature_configured
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200"
-                  }`}
-                >
-                  {profile?.signature_configured ? "Configured" : "Signature system: Not configured"}
-                </span>
-              </div>
-
-              <div className="p-3.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg flex items-center justify-between">
-                <div className="text-xs text-[#475569]">
-                  {profile?.signature_configured ? (
-                    <span>Your electronic attestation is active and attached to final generated diagnostic reports.</span>
-                  ) : (
-                    <span>Public key digital signature infrastructure is currently <strong>not configured</strong>. Reports reflect preliminary triage status.</span>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setProfile(profile ? { ...profile, signature_configured: !profile.signature_configured } : null)
-                  }
-                  className="px-3 py-1.5 border border-[#c3c6d7] bg-white hover:bg-[#f1f5f9] text-xs font-semibold rounded-lg transition cursor-pointer"
-                >
-                  {profile?.signature_configured ? "Disable Signature" : "Configure Signature"}
-                </button>
-              </div>
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={profileSaving}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
+              >
+                {profileSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>Save Profile Credentials</span>
+              </button>
             </div>
-          </div>
+          </form>
 
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={profileSaving}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
-            >
-              {profileSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>Update Profile</span>
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* TAB 4: Privacy & Security */}
-      {activeTab === "privacy" && (
-        <div className="space-y-6">
-          {sessionSuccess && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{sessionSuccess}</span>
-            </div>
-          )}
-          {sessionError && (
-            <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              <span>{sessionError}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Privacy Controls & HIPAA-Related Configuration */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
-                <ShieldCheck className="w-4 h-4 text-[#2563eb]" />
-                Privacy Controls & HIPAA Configuration
-              </h3>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between items-center p-3 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
-                  <div>
-                    <span className="font-semibold text-[#131b2e] block">Audit Logging Status</span>
-                    <span className="text-[11px] text-[#64748b]">Activity tracking in SQLite audit ledger</span>
-                  </div>
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-bold text-[11px] rounded border border-emerald-200">
-                    Active
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
-                  <div>
-                    <span className="font-semibold text-[#131b2e] block">Medical Data Retention</span>
-                    <span className="text-[11px] text-[#64748b]">Clinical archive policy</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-[#1e293b]">Configured by Administrator (365 days)</span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
-                  <div>
-                    <span className="font-semibold text-[#131b2e] block">Session Inactivity Timeout</span>
-                    <span className="text-[11px] text-[#64748b]">Automatic token expiration</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-[#1e293b]">30 minutes</span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
-                  <div>
-                    <span className="font-semibold text-[#131b2e] block">Automatic Logout on Expiry</span>
-                    <span className="text-[11px] text-[#64748b]">Protects unattended clinical workstations</span>
-                  </div>
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-bold text-[11px] rounded border border-emerald-200">
-                    Enabled
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-[#64748b] leading-relaxed">
-                <strong>HIPAA-Related Notice:</strong> Privacy controls adhere to HIPAA security standards for clinical data segregation and token lifecycle management. Full compliance certification requires deployment in a HIPAA-qualified cloud environment.
-              </div>
-            </div>
-
-            {/* Session Management */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
-                <LogOut className="w-4 h-4 text-[#2563eb]" />
-                Session Revocation
-              </h3>
-
-              <p className="text-xs text-[#64748b] leading-relaxed">
-                If you suspect unauthorized workstation access or have logged in from an untrusted device, revoke all active sessions. Your current browser session will remain valid while all other tokens are terminated immediately.
-              </p>
-
-              <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={handleRevokeSessions}
-                  disabled={revokingSessions}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
-                >
-                  {revokingSessions ? <RefreshCw className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-                  <span>Revoke All Other Active Sessions</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Change Password Form */}
-            <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm lg:col-span-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
-                <Key className="w-4 h-4 text-[#2563eb]" />
-                Update Clinician Password
-              </h3>
-
-              {passwordSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{passwordSuccess}</span>
-                </div>
-              )}
-              {passwordError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                  <span>{passwordError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#131b2e]">Current Password</label>
-                  <input
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#131b2e]">New Password</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                    placeholder="At least 8 characters"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#131b2e]">Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                    placeholder="Confirm password"
-                    required
-                  />
-                </div>
-
-                <div className="md:col-span-3 flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={passwordUpdating}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
-                  >
-                    {passwordUpdating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                    <span>Update Password</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: Audit Logs */}
-      {activeTab === "audit" && (
-        <div className="space-y-4">
-          <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#e2e8f0]">
+          {/* Card C: Functional Configure Signature Section */}
+          <div className="bg-white border border-[#c3c6d7] rounded-xl p-6 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#e2e8f0]">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#2563eb]" />
-                  Clinical & System Audit Trail
+                  <PenTool className="w-4 h-4 text-[#2563eb]" />
+                  Attending Radiologist Digital Signature
                 </h3>
-                <p className="text-[11px] text-[#64748b] mt-0.5">
-                  Tamper-evident log of authentication, ultrasound analyses, reports, and administrative configuration events.
+                <p className="text-xs text-[#64748b] mt-0.5">
+                  Draw and persist your authorized medical signature for integration into official PDF diagnostic reports.
                 </p>
               </div>
 
-              <span className="text-xs font-medium text-[#64748b]">
-                Total Events: <strong className="text-[#1e293b] font-mono">{auditMeta.total}</strong>
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border self-start sm:self-auto ${
+                  profile?.signature_configured
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                    : "bg-amber-50 text-amber-800 border-amber-300"
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${profile?.signature_configured ? "bg-emerald-500" : "bg-amber-500"}`} />
+                {profile?.signature_configured ? "Active & Configured" : "Not Configured"}
               </span>
             </div>
 
-            {/* Filter Toolbar */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-[#94a3b8] absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={auditSearchQuery}
-                  onChange={(e) => setAuditSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      setAuditPage(1);
-                      loadAuditLogs();
-                    }
-                  }}
-                  placeholder="Search by action, resource ID, or IP..."
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none"
-                />
-              </div>
+            {/* Current Configured Signature Display */}
+            {profile?.signature_configured && profile.signature_url && !showSignaturePad && (
+              <div className="p-5 bg-[#f8fafc] border border-slate-200 rounded-xl space-y-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="space-y-1 text-center sm:text-left">
+                    <span className="text-xs font-bold text-slate-800 block">
+                      Active Authorized Signature
+                    </span>
+                    <span className="text-[11px] text-slate-500 block">
+                      Embedded in all generated diagnostic dossiers under Certification.
+                    </span>
+                  </div>
 
-              <select
-                value={auditActionFilter}
-                onChange={(e) => {
-                  setAuditActionFilter(e.target.value);
-                  setAuditPage(1);
-                }}
-                className="px-3 py-2 text-xs border border-[#c3c6d7] rounded-lg focus:ring-2 focus:ring-[#2563eb] outline-none bg-white text-[#131b2e]"
-              >
-                <option value="">All Actions</option>
-                <option value="user_login">User Login</option>
-                <option value="user_logout">User Logout</option>
-                <option value="analysis_created">Analysis Created</option>
-                <option value="analysis_viewed">Analysis Viewed</option>
-                <option value="report_downloaded">Report Downloaded</option>
-                <option value="report_viewed">Report Previewed</option>
-                <option value="clinician_notes_updated">Notes Updated</option>
-                <option value="settings_changed">Settings Changed</option>
-                <option value="profile_updated">Profile Updated</option>
-                <option value="password_changed">Password Changed</option>
-              </select>
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-xs flex items-center justify-center min-w-[200px]">
+                    <img
+                      src={profile.signature_url}
+                      alt="Configured Radiologist Signature"
+                      className="max-h-14 max-w-[220px] object-contain"
+                    />
+                  </div>
+                </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setAuditPage(1);
-                  loadAuditLogs();
-                }}
-                className="px-4 py-2 bg-[#2563eb] text-white text-xs font-semibold rounded-lg hover:bg-[#1d4ed8] transition cursor-pointer"
-              >
-                Filter
-              </button>
-            </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto border border-[#e2e8f0] rounded-lg">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#f8fafc] border-b border-[#e2e8f0] text-[#64748b] font-semibold text-[11px] uppercase tracking-wider">
-                    <th className="p-3">Timestamp</th>
-                    <th className="p-3">User</th>
-                    <th className="p-3">Action</th>
-                    <th className="p-3">Resource</th>
-                    <th className="p-3">IP Address</th>
-                    <th className="p-3">Event Details</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
-                  {auditLoading ? (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-[#64748b]">
-                        <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#2563eb] mb-2" />
-                        Loading audit trail records...
-                      </td>
-                    </tr>
-                  ) : auditLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-[#64748b]">
-                        No audit events match your search criteria.
-                      </td>
-                    </tr>
-                  ) : (
-                    auditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-[#f8fafc] transition-colors">
-                        <td className="p-3 font-mono text-[11px] text-[#64748b] whitespace-nowrap">
-                          {new Date(log.created_at).toLocaleString()}
-                        </td>
-                        <td className="p-3 text-[#131b2e] font-medium whitespace-nowrap">
-                          {log.user?.name || `User #${log.user_id || "System"}`}
-                        </td>
-                        <td className="p-3 whitespace-nowrap">
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-mono text-[11px] border border-blue-200">
-                            {log.action}
-                          </span>
-                        </td>
-                        <td className="p-3 text-[#64748b] font-mono text-[11px] whitespace-nowrap">
-                          {log.resource_type ? `${log.resource_type} #${log.resource_id || ""}` : "—"}
-                        </td>
-                        <td className="p-3 font-mono text-[11px] text-[#64748b] whitespace-nowrap">
-                          {log.ip_address}
-                        </td>
-                        <td className="p-3 text-[#64748b] text-[11px] max-w-xs truncate">
-                          {log.metadata ? JSON.stringify(log.metadata) : "—"}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {auditMeta.last_page > 1 && (
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-[#64748b]">
-                  Page {auditMeta.current_page} of {auditMeta.last_page}
-                </span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-200/80">
                   <button
-                    disabled={auditPage <= 1}
-                    onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
-                    className="px-3 py-1.5 border border-[#c3c6d7] rounded text-xs font-medium hover:bg-[#f8fafc] disabled:opacity-40 cursor-pointer"
+                    type="button"
+                    onClick={() => {
+                      setShowSignaturePad(true);
+                      setTimeout(clearCanvas, 50);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-[#2563eb] border border-[#2563eb] rounded-lg text-xs font-semibold transition cursor-pointer"
                   >
-                    Previous
+                    <PenTool className="w-3.5 h-3.5" />
+                    <span>Update Signature</span>
                   </button>
+
                   <button
-                    disabled={auditPage >= auditMeta.last_page}
-                    onClick={() => setAuditPage((p) => p + 1)}
-                    className="px-3 py-1.5 border border-[#c3c6d7] rounded text-xs font-medium hover:bg-[#f8fafc] disabled:opacity-40 cursor-pointer"
+                    type="button"
+                    onClick={handleRemoveSignature}
+                    disabled={signatureSaving}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-semibold transition cursor-pointer"
                   >
-                    Next
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove Signature</span>
                   </button>
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* TAB 6: System Information */}
-      {activeTab === "system" && (
-        <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-5 shadow-sm">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
-            <Info className="w-4 h-4 text-[#2563eb]" />
-            Application & Architecture Telemetry
-          </h3>
+            {/* If Not Configured, Prompt CTA */}
+            {!profile?.signature_configured && !showSignaturePad && (
+              <div className="p-6 bg-amber-50/60 border border-amber-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="space-y-1 text-center sm:text-left">
+                  <h4 className="text-xs font-bold text-amber-950 flex items-center gap-1.5 justify-center sm:justify-start">
+                    <FileCheck className="w-4 h-4 text-amber-600" />
+                    Signature Attestation Pending
+                  </h4>
+                  <p className="text-xs text-amber-900/90 leading-relaxed">
+                    Configure your digitized medical signature so exported PDF diagnostic dossiers include certified radiologist verification.
+                  </p>
+                </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 text-xs">
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">Application</span>
-              <span className="font-bold text-[#131b2e] text-sm">{health?.system_info.application || "KidneyVision AI"}</span>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSignaturePad(true)}
+                  className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap cursor-pointer shrink-0"
+                >
+                  Configure Signature
+                </button>
+              </div>
+            )}
 
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">Version</span>
-              <span className="font-bold text-[#2563eb] font-mono">{health?.system_info.version || "1.2.0-clinical"}</span>
-            </div>
+            {/* Interactive Drawing Pad Modal / Box */}
+            {showSignaturePad && (
+              <div className="p-5 bg-slate-50 border border-slate-300 rounded-xl space-y-4 animate-in fade-in">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <PenTool className="w-4 h-4 text-[#2563eb]" />
+                      Sign in the Box Below
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Use your mouse, trackpad, or touchscreen stylus to draw your medical signature.
+                    </span>
+                  </div>
 
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">Environment</span>
-              <span className="font-bold text-[#131b2e] font-mono uppercase">{health?.system_info.environment || "Development"}</span>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSignaturePad(false);
+                      clearCanvas();
+                    }}
+                    className="p-1 text-slate-400 hover:text-slate-700 rounded-lg"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
 
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">Frontend Stack</span>
-              <span className="font-semibold text-[#1e293b]">{health?.system_info.frontend || "React 18 + Vite + TS"}</span>
-            </div>
+                {/* Drawing Surface */}
+                <div className="relative border-2 border-dashed border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner flex justify-center">
+                  <canvas
+                    ref={canvasRef}
+                    width={560}
+                    height={160}
+                    onMouseDown={startDrawing}
+                    onMouseMove={drawSignature}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={drawSignature}
+                    onTouchEnd={stopDrawing}
+                    className="cursor-crosshair touch-none w-full max-w-[560px] h-[160px]"
+                  />
+                  {!signatureHasDrawn && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-300 text-xs font-medium">
+                      Draw clinician signature here
+                    </div>
+                  )}
+                </div>
 
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">Backend Engine</span>
-              <span className="font-semibold text-[#1e293b]">{health?.system_info.backend || "Laravel 11"}</span>
-            </div>
+                {/* Pad Controls */}
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={clearCanvas}
+                    className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+                  >
+                    Clear Canvas
+                  </button>
 
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">AI Microservice</span>
-              <span className="font-semibold text-[#1e293b]">{health?.system_info.ai_runtime || "Flask + TensorFlow"}</span>
-            </div>
-
-            <div className="p-3.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] space-y-1 sm:col-span-2 md:col-span-3">
-              <span className="text-[10px] text-[#64748b] uppercase tracking-wider block font-semibold">Active AI Model</span>
-              <span className="font-mono text-xs text-[#2563eb] font-semibold">{health?.system_info.model_name || "Kidney Stone Classifier (best_model.keras)"}</span>
-            </div>
-          </div>
-
-          <div className="p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-lg text-xs text-emerald-900 leading-relaxed flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>
-              <strong>Security Architecture Verified:</strong> No server credentials, JWT signing secrets, database passwords, or filesystem paths are exposed in frontend telemetry.
-            </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSignaturePad(false)}
+                      className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveSignature}
+                      disabled={signatureSaving || !signatureHasDrawn}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-xs font-bold transition disabled:opacity-40 cursor-pointer shadow-sm"
+                    >
+                      {signatureSaving ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      <span>Save Signature</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

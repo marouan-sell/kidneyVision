@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   PlusCircle,
@@ -9,6 +10,7 @@ import {
   LogOut,
   X,
 } from 'lucide-react';
+import { KidneyMark } from '../common/Brand';
 
 interface DashboardSidebarProps {
   isOpenMobile: boolean;
@@ -48,14 +50,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         {/* Top: Clean Typographic Brand */}
         <div>
           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <span className="text-base font-extrabold tracking-tight text-slate-900 font-sans flex items-center gap-1.5">
-                KidneyVision <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700">AI</span>
-              </span>
-              <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-400 block mt-0.5">
-                Renal Decision Support
-              </span>
-            </div>
+            <Link to="/dashboard" className="flex items-center gap-2.5 group cursor-pointer text-left">
+              <KidneyMark className="h-7 w-7 text-[#2563eb] shrink-0 group-hover:scale-105 transition-transform" />
+              <div>
+                <span className="text-base font-extrabold tracking-tight text-slate-900 font-sans flex items-center gap-1.5 leading-none group-hover:text-sky-600 transition-colors">
+                  KidneyVision <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700">AI</span>
+                </span>
+                <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-400 block mt-1 group-hover:text-slate-600 transition-colors">
+                  Clinical Portal
+                </span>
+              </div>
+            </Link>
 
             {/* Mobile Close Button */}
             <button

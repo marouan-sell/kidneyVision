@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Upload, Sparkles, Loader2, Play, CircleDot, ShieldCheck, 
   Eye, FileText, CheckCircle2, ChevronRight, Download, Dna, 
@@ -12,7 +12,7 @@ import {
   HelpCircle, Info, Stethoscope, Hash, Trash2, Crosshair,
   Ruler, Activity, Cpu, CheckCircle, Maximize2
 } from "lucide-react";
-import { createPrediction, downloadReport, updateAnalysis, getReportPdfBlobUrl } from "../services";
+import { createPrediction, downloadReport, updateAnalysis, getReportPdfBlobUrl, fetchPatients } from "../services";
 import { DiagnosisResult, KidneyAnalysis } from "../types";
 import { validateScanFile } from "../utils/fileValidation";
 import { parseClinicalError, ClinicalError } from "../utils/errorParser";
@@ -29,6 +29,32 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
   const [patientGender, setPatientGender] = useState<"Male" | "Female" | "Other">("Male");
   const [location, setLocation] = useState<"Left Kidney" | "Right Kidney" | "Unspecified">("Left Kidney");
   const [clinicianNotes, setClinicianNotes] = useState<string>("");
+  const [existingPatients, setExistingPatients] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchPatients()
+      .then((data) => {
+        if (Array.isArray(data)) setExistingPatients(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handlePatientNameChange = (name: string) => {
+    setPatientName(name);
+    const matched = existingPatients.find(
+      (p) => p.name?.toLowerCase().trim() === name.toLowerCase().trim()
+    );
+    if (matched) {
+      if (matched.patient_id) setPatientId(matched.patient_id);
+      if (matched.age) setPatientAge(matched.age.toString());
+      if (matched.gender) {
+        const g = matched.gender.toLowerCase();
+        if (g === "female") setPatientGender("Female");
+        else if (g === "male") setPatientGender("Male");
+        else setPatientGender("Other");
+      }
+    }
+  };
   
   // Custom file upload state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -166,6 +192,12 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
 
       setTimeout(() => {
         setActiveAnalysis(res);
+        if (res.patientId) {
+          setPatientId(res.patientId);
+        }
+        if (res.patientName) {
+          setPatientName(res.patientName);
+        }
         if (res.clinicianNotes) {
           setClinicianNotes(res.clinicianNotes);
         }
@@ -304,31 +336,47 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
             {/* Patient ID and Name */}
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1 col-span-1">
-                <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center gap-1" htmlFor="patient-id">
+                <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center justify-between" htmlFor="patient-id">
                   <span>Patient ID</span>
+                  <span className="text-[9px] text-[#2563eb] font-normal">Auto if blank</span>
                 </label>
                 <input 
                   id="patient-id"
                   className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white font-mono placeholder:text-slate-400" 
                   type="text" 
-                  placeholder="e.g. PT-8492"
+                  placeholder="e.g. PT-10001"
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
                 />
               </div>
 
               <div className="space-y-1 col-span-2">
-                <label className="font-sans text-[11px] font-semibold text-[#434655]" htmlFor="patient-name">
-                  Patient Full Name
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="font-sans text-[11px] font-semibold text-[#434655]" htmlFor="patient-name">
+                    Patient Full Name
+                  </label>
+                  {existingPatients.length > 0 && (
+                    <span className="text-[9px] text-slate-400 font-medium">
+                      {existingPatients.length} existing patient{existingPatients.length > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
                 <input 
                   id="patient-name"
+                  list="existing-patients-datalist"
                   className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white placeholder:text-slate-400" 
                   type="text" 
                   placeholder="e.g. Sarah Jenkins or Case #104"
                   value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
+                  onChange={(e) => handlePatientNameChange(e.target.value)}
                 />
+                <datalist id="existing-patients-datalist">
+                  {existingPatients.map((p) => (
+                    <option key={p.id || p.patient_id} value={p.name}>
+                      {p.patient_id} {p.age ? `· ${p.age}y` : ""} {p.gender ? `· ${p.gender}` : ""}
+                    </option>
+                  ))}
+                </datalist>
               </div>
             </div>
 

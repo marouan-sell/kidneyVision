@@ -1,22 +1,64 @@
 export function KidneyMark({ className = "h-9 w-9" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="KidneyVision AI logo">
+    <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KidneyVision AI logo">
       <defs>
-        <linearGradient id="kidney-logo-gradient" x1="8" x2="56" y1="6" y2="58">
-          <stop stopColor="#2563eb" />
-          <stop offset="1" stopColor="#0f3f88" />
+        <linearGradient id="kv-renal-gradient" x1="10" y1="6" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#2563eb" />
+          <stop offset="65%" stopColor="#1d4ed8" />
+          <stop offset="100%" stopColor="#0f3f88" />
+        </linearGradient>
+        <linearGradient id="kv-pulse-gradient" x1="16" y1="16" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="100%" stopColor="#2563eb" />
+        </linearGradient>
+        <linearGradient id="kv-inner-glow" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#eff6ff" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#dbeafe" stopOpacity="0.45" />
         </linearGradient>
       </defs>
+
+      {/* Anatomical Renal Cortex Outline & Medulla Silhouette */}
       <path
-        d="M32 8c-10 0-18 6-22 16-5 13 1 28 14 34 7 3 13 0 13-8V39c0-5 3-9 8-10l8-2c0-11-9-19-21-19Z"
-        fill="#eff8ff"
-        stroke="url(#kidney-logo-gradient)"
+        d="M32 7C20.5 7 11 15.5 9 27C7.2 37.4 12.8 48 23 53.5C28.2 56.3 34.5 56.5 39 52C43.5 47.5 42 41.5 39.5 36.5C37.5 32.5 37.5 28.5 40 24.5C43 19.5 47 16 45 11.5C43.2 7.5 37.8 7 32 7Z"
+        fill="url(#kv-inner-glow)"
+        stroke="url(#kv-renal-gradient)"
+        strokeWidth="3.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="3.8"
       />
-      <path d="M38 30c8 1 13 7 13 15v11" fill="none" stroke="#0b3a78" strokeLinecap="round" strokeWidth="3.2" />
-      <path d="M38 35c-8 3-13 8-17 16M38 35c-7-1-14 1-20 6M39 34c-4-7-10-12-18-15" fill="none" stroke="#2563eb" strokeLinecap="round" strokeWidth="2.4" />
+
+      {/* Ultrasound Acoustic Waves / Renal Calyx Conduits */}
+      <path
+        d="M21 21C25 17.5 31 17 36 19.5"
+        stroke="url(#kv-pulse-gradient)"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18 29C23 25.5 30 25.5 35 29"
+        stroke="url(#kv-pulse-gradient)"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M19 37C23 34.5 29 35 33 39"
+        stroke="url(#kv-pulse-gradient)"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+
+      {/* Renal Hilum & Pelvis Vascular Junction */}
+      <path
+        d="M38 27C34 29 32 33 34 38C35.5 41.8 39 44.5 42 48"
+        stroke="url(#kv-renal-gradient)"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Precision Diagnostic Focal Node */}
+      <circle cx="27" cy="30" r="3" fill="#2563eb" />
+      <circle cx="27" cy="30" r="5.5" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="2.5 2" />
     </svg>
   );
 }
