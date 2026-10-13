@@ -294,9 +294,7 @@ export default function AppHelpCenter() {
                       <span className="font-sans text-xs sm:text-sm font-bold text-[#131b2e]">
                         {faq.question}
                       </span>
-                      <span className="p-1 rounded-md bg-[#f2f3ff] text-[#434655] shrink-0">
-                        {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </span>
+                      {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
                     </button>
                     {isOpen && (
                       <div className="px-4 pb-4 pt-1 text-xs text-[#434655] leading-relaxed border-t border-slate-100 bg-[#faf8ff]/50">

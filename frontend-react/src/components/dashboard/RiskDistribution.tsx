@@ -51,9 +51,7 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-rose-50 text-rose-700">
-            <ShieldAlert className="w-4 h-4" />
-          </span>
+          <ShieldAlert className="w-4 h-4 text-slate-400 stroke-[1.75]" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">Clinical Triage Risk Stratification</h3>
             <p className="text-xs text-slate-500">Based on calculus size, position & obstruction</p>
@@ -112,7 +110,7 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
 
       {/* Note */}
       <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 text-[11px] text-slate-400">
-        <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
+        <AlertOctagon className="w-3.5 h-3.5 text-amber-500 stroke-[1.75]" />
         <span>Urgent cases trigger immediate clinician review notifications</span>
       </div>
     </div>
