@@ -21,7 +21,6 @@ import {
   Check,
   X,
   FileCheck,
-  ShieldCheck,
   Database,
   Cpu
 } from "lucide-react";

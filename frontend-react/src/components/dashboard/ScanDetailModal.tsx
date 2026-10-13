@@ -12,7 +12,6 @@ import {
   Download,
   XCircle,
   Crosshair,
-  Sparkles,
   Ruler,
   Cpu,
   Loader2,
@@ -288,7 +287,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    <Sparkles className="w-3 h-3" />
+                    <Activity className="w-3 h-3" />
                     Grad-CAM
                   </button>
                 )}

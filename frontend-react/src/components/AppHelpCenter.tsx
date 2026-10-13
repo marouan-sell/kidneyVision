@@ -16,9 +16,9 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
+  Info,
   ExternalLink,
   Mail,
   MapPin,
@@ -210,7 +210,7 @@ export default function AppHelpCenter() {
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 hover:shadow-md transition-all flex flex-col justify-between">
           <div className="space-y-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
+              <Layers className="w-5 h-5" />
             </div>
             <h3 className="font-sans text-sm font-bold text-[#131b2e]">Grad-CAM Heatmap Guide</h3>
             <p className="font-sans text-xs text-[#434655] leading-relaxed">
@@ -311,7 +311,7 @@ export default function AppHelpCenter() {
 
           {/* Clinical Tip Box */}
           <div className="bg-[#eff6ff] border border-[#2563eb]/20 rounded-xl p-4 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-[#2563eb] shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-[#2563eb] shrink-0 mt-0.5" />
             <div className="space-y-1 text-xs">
               <h4 className="font-bold text-[#131b2e]">Clinician Tip for Shadow Detection</h4>
               <p className="text-[#434655] leading-relaxed">

@@ -8,8 +8,8 @@ import { Link } from "react-router-dom";
 import { 
   Search, Calendar, Filter, Eye, Trash2, Sliders, X, 
   ChevronRight, ChevronLeft, Loader2, Award, ClipboardCheck, ArrowUpRight, CheckCircle2, AlertCircle, RefreshCw,
-  FileText, Download, FileDown, Sparkles, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck,
-  ChevronDown, Info, Check
+  FileText, Download, FileDown, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck,
+  ChevronDown, Info, Check, PlusCircle
 } from "lucide-react";
 import { getAnalyses, deleteAnalysis, downloadReport, updateAnalysis, getReportPdfBlobUrl } from "../services";
 import { CLINICAL_SCAN_FALLBACK_SVG } from "../services/client";
@@ -328,7 +328,7 @@ export default function AppHistory() {
           <div className="flex items-start gap-2.5">
             {notification.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" /> :
              notification.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> :
-             <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />}
+             <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />}
             <div>
               <h4 className="font-bold text-xs">{notification.title}</h4>
               <p className="mt-0.5 opacity-90">{notification.message}</p>
@@ -372,7 +372,7 @@ export default function AppHistory() {
               to="/analysis"
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#2563eb] hover:bg-[#004ac6] text-white text-xs font-bold rounded-lg shadow-sm transition-all"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <PlusCircle className="w-3.5 h-3.5" />
               Start New Analysis
             </Link>
           </div>
@@ -687,7 +687,7 @@ export default function AppHistory() {
                           : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                       }`}
                     >
-                      <Sparkles className="w-3 h-3" />
+                      <Layers className="w-3 h-3" />
                       Dual Panel
                     </button>
                   )}

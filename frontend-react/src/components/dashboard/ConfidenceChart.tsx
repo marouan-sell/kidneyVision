@@ -2,7 +2,7 @@ import React from 'react';
 import { Bar } from 'react-chartjs-2';
 import './chartSetup';
 import type { ConfidenceBucket } from '../../types/analytics';
-import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { BarChart3, CheckCircle2 } from 'lucide-react';
 
 interface ConfidenceChartProps {
   buckets: ConfidenceBucket[];
@@ -102,7 +102,7 @@ export const ConfidenceChart: React.FC<ConfidenceChartProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-blue-50 text-blue-700">
-              <Sparkles className="w-4 h-4" />
+              <BarChart3 className="w-4 h-4" />
             </span>
             <h3 className="text-sm font-bold text-slate-900">
               AI Confidence Distribution & Calibration

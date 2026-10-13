@@ -1,6 +1,6 @@
 import {
   ArrowRight,
-  Brain,
+  Cpu,
   Database,
   FileText,
   Github,
@@ -13,7 +13,7 @@ import {
   UploadCloud,
   User,
   X,
-  Zap,
+  Clock,
   Mail,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -35,14 +35,14 @@ const navItems = ["Home", "About", "Features", "Results", "Team", "Why Us"];
 const stats = [
   { icon: Database, value: "9,416+", label: "Medical CT & Ultrasound Scans" },
   { icon: Target, value: "99.8%", label: "Average 4-Class Diagnostic Accuracy" },
-  { icon: Zap, value: "< 2.0s", label: "Dual-Stage Pipeline Inference Speed" },
+  { icon: Clock, value: "< 2.0s", label: "Dual-Stage Pipeline Inference Speed" },
   { icon: Network, value: "4 Pathologies", label: "Cyst, Normal, Stone, and Tumor" },
   { icon: ShieldCheck, value: "Gatekeeper", label: "MobileNetV3 Acoustic Screening" },
 ];
 
 const features = [
   { icon: UploadCloud, title: "Ultrasound & CT Upload", text: "Upload B-mode renal ultrasound and CT scans in seconds." },
-  { icon: Brain, title: "4-Class Deep Inference", text: "ConvNeXt-Tiny classifying Cyst, Normal, Stone, and Tumor." },
+  { icon: Cpu, title: "4-Class Deep Inference", text: "ConvNeXt-Tiny classifying Cyst, Normal, Stone, and Tumor." },
   { icon: ShieldCheck, title: "Gatekeeper AI", text: "Screens and rejects non-renal images before clinical classification." },
   { icon: Target, title: "Grad-CAM Heatmaps", text: "Explainable AI visual saliency with lesion diameter estimation." },
   { icon: FileText, title: "Certified PDF Reports", text: "Certified reports with clinician addenda and audit logging." },
@@ -50,14 +50,14 @@ const features = [
 
 const benefits = [
   { icon: Target, title: "High Accuracy", text: "Trained on 9,416 images with 99.8% average project accuracy." },
-  { icon: Zap, title: "Fast & Efficient", text: "Results designed for rapid analysis in under 3.5 seconds." },
+  { icon: Clock, title: "Fast & Efficient", text: "Results designed for rapid analysis in under 3.5 seconds." },
   { icon: FileText, title: "Easy to Use", text: "A clear workflow for upload, prediction, and report access." },
   { icon: ShieldCheck, title: "Secure & Private", text: "Encrypted handling patterns and protected access flows." },
 ];
 
 const workflowSteps: Array<{ number: string; icon: LucideIcon; title: string; text: string }> = [
   { number: "1", icon: UploadCloud, title: "Upload Image", text: "Add your renal ultrasound image. Support JPG and PNG." },
-  { number: "2", icon: Brain, title: "AI Analysis", text: "The deep learning model analyzes the image." },
+  { number: "2", icon: Cpu, title: "AI Analysis", text: "The deep learning model analyzes the image." },
   { number: "3", icon: FileText, title: "Get Results", text: "View prediction, confidence score, and access the report." },
 ];
 

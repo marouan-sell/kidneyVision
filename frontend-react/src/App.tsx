@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
-  Activity, ShieldCheck, History, Settings, LogOut, FileText, 
-  LayoutDashboard, User, HelpCircle, Eye, Menu, X, PlusCircle, BrainCircuit
+  Activity, History, Settings, LogOut, FileText, 
+  LayoutDashboard, HelpCircle, Menu, X, PlusCircle
 } from "lucide-react";
 import { KidneyMark } from "./components/common/Brand";
 

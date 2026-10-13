@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UploadCloud, CheckCircle2, ArrowLeft, Loader2, RefreshCw, AlertCircle, Printer, FileText, Layers, Eye, ShieldCheck, Sparkles } from "lucide-react";
+import { UploadCloud, CheckCircle2, ArrowLeft, Loader2, RefreshCw, AlertCircle, Printer, FileText, Layers, Eye, ShieldCheck, Activity } from "lucide-react";
 import { guestPredict } from "../services";
 import { validateScanFile } from "../utils/fileValidation";
 
@@ -189,7 +189,7 @@ export default function GuestAnalysis() {
                           : 'text-[#434655] hover:text-[#131b2e] hover:bg-white/60'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Activity className="w-3.5 h-3.5" />
                       Grad-CAM Heatmap
                     </button>
                   )}

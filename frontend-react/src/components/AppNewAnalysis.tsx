@@ -5,11 +5,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  Upload, Sparkles, Loader2, Play, CircleDot, ShieldCheck, 
-  Eye, FileText, CheckCircle2, ChevronRight, Download, Dna, 
-  ArrowRight, Heart, AlertCircle, FileDown, X, RefreshCw,
-  User, Calendar, Layers, Image as ImageIcon, Check, Sliders,
-  HelpCircle, Info, Stethoscope, Hash, Trash2, Crosshair,
+  Upload, Loader2, Play, CircleDot, ShieldCheck, 
+  Eye, FileText, CheckCircle2, ChevronRight, Download, 
+  ArrowRight, AlertCircle, FileDown, X, RefreshCw,
+  User, Calendar, Layers, Image as ImageIcon, Check,
+  HelpCircle, Info, Trash2, Crosshair,
   Ruler, Activity, Cpu, CheckCircle, Maximize2
 } from "lucide-react";
 import { createPrediction, downloadReport, updateAnalysis, getReportPdfBlobUrl, fetchPatients } from "../services";
@@ -237,7 +237,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-[#c3c6d7]/30">
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#2563eb] text-[11px] font-bold mb-1">
-            <Sparkles className="w-3 h-3" />
+            <Activity className="w-3 h-3" />
             AI Computer Vision Inference Console
           </div>
           <h1 className="font-sans text-2xl font-bold text-[#131b2e] tracking-tight">
@@ -615,7 +615,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                         }`}
                         title="Grad-CAM Saliency Overlay"
                       >
-                        <Sparkles className="w-3 h-3" />
+                        <Activity className="w-3 h-3" />
                         Grad-CAM
                       </button>
                     )}
@@ -691,7 +691,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                           )}
                           {heatmapViewMode === "gradcam" && (
                             <>
-                              <Sparkles className="w-3 h-3 text-sky-400" />
+                              <Activity className="w-3 h-3 text-sky-400" />
                               <span>GRAD-CAM SALIENCY HEATMAP</span>
                             </>
                           )}
@@ -843,7 +843,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                 {!isScanning && !activeAnalysis && (
                   <div className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-3">
                     <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 opacity-60" />
+                      <Activity className="w-6 h-6 text-[#2563eb]" />
                     </div>
                     <div className="space-y-1">
                       <h5 className="font-sans text-xs font-bold text-[#131b2e]">Scan Awaiting Inference</h5>

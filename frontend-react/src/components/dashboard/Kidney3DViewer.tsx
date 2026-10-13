@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Float, Html, Center, useGLTF } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { RotateCcw, ZoomIn, ZoomOut, Play, Pause, Sparkles } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Play, Pause, Activity, Layers } from 'lucide-react';
 import {
   createKidneyGeometry,
   createKidneyDiffuseTexture,
@@ -171,7 +171,7 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
       {/* Top Banner */}
       <div className="absolute top-2.5 left-3 z-10 flex items-center gap-2 pointer-events-none">
         <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-850/90 backdrop-blur-md border border-slate-700 shadow-sm text-[10px] font-medium text-slate-200">
-          <Sparkles className="w-3 h-3 text-rose-400" />
+          <Activity className="w-3 h-3 text-rose-400" />
           3D Anatomy
         </div>
       </div>
@@ -301,7 +301,7 @@ class SafeViewerErrorBoundary extends React.Component<
       return (
         <div className="w-full h-full min-h-[250px] lg:min-h-[265px] rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 p-6 flex flex-col items-center justify-center text-center">
           <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-rose-400 mb-3 shadow-inner">
-            <Sparkles className="w-6 h-6" />
+            <Layers className="w-6 h-6" />
           </div>
           <h4 className="text-sm font-semibold text-slate-200">3D Anatomical Reference</h4>
           <p className="text-xs text-slate-400 mt-1 max-w-[220px]">

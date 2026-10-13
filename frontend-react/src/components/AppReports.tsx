@@ -6,9 +6,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
-  FileDown, Printer, Eye, Search, Award, CheckCircle2, 
+  FileDown, Eye, Search, CheckCircle2, 
   AlertTriangle, RefreshCw, X, Loader2, FileText, Calendar,
-  ShieldCheck, ArrowUpDown, Sparkles, CircleDot, AlertOctagon
+  ShieldCheck, AlertOctagon, PlusCircle, CircleDot
 } from "lucide-react";
 import { getAnalyses, downloadReport, getReportPdfBlobUrl } from "../services";
 import { CLINICAL_SCAN_FALLBACK_SVG } from "../services/client";
@@ -284,7 +284,7 @@ export default function AppReports() {
                 to="/analysis"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#2563eb] hover:bg-[#004ac6] text-white text-xs font-bold rounded-lg shadow-sm transition-all mt-2"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <PlusCircle className="w-3.5 h-3.5" />
                 Upload First Scan
               </Link>
             ) : (
