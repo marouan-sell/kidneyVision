@@ -53,15 +53,12 @@ class PDFReportController extends Controller
             }
 
             $signatureBase64 = null;
-            if ($user && $user->signature_configured) {
-                $targetSigPath = ($user->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature_path))
-                    ? $user->signature_path
-                    : (\Illuminate\Support\Facades\Storage::disk('public')->exists('signatures/sig_16_1791889016.png') ? 'signatures/sig_16_1791889016.png' : null);
-
-                if ($targetSigPath) {
-                    $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($targetSigPath);
-                    $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
-                }
+            if ($user && $user->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature_path)) {
+                $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($user->signature_path);
+                $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+            } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists('signatures/sig_16_1791889016.png')) {
+                $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get('signatures/sig_16_1791889016.png');
+                $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
             }
 
             // Generate PDF using DOMPDF
@@ -131,15 +128,12 @@ class PDFReportController extends Controller
             }
 
             $signatureBase64 = null;
-            if ($user && $user->signature_configured) {
-                $targetSigPath = ($user->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature_path))
-                    ? $user->signature_path
-                    : (\Illuminate\Support\Facades\Storage::disk('public')->exists('signatures/sig_16_1791889016.png') ? 'signatures/sig_16_1791889016.png' : null);
-
-                if ($targetSigPath) {
-                    $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($targetSigPath);
-                    $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
-                }
+            if ($user && $user->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature_path)) {
+                $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($user->signature_path);
+                $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+            } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists('signatures/sig_16_1791889016.png')) {
+                $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get('signatures/sig_16_1791889016.png');
+                $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
             }
 
             // Stream PDF inline for browser/iframe preview
