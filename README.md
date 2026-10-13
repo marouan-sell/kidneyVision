@@ -392,7 +392,7 @@ Services will be mapped to:
 
 ## 👥 Authors & Acknowledgments
 
-- **Development Team**: Marouan Sellami, Souhibe Bakkali, Mossab Oueld Neimia
+- **Development Team**: Marouan Sellami, Souhibe Bakkali, Mossaab Uold Eneemia
 - **Institution**: KidneyVision AI Research & Development Team
 
 ---
@@ -400,5 +400,5 @@ Services will be mapped to:
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.  
-Copyright (c) 2026 Marouan Sellami.
+Copyright (c) 2026 Marouan Sellami, Souhibe Bakkali, Mossaab Uold Eneemia.
 
