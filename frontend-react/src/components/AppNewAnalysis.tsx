@@ -236,10 +236,6 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
       {/* Top Header & Breadcrumbs matching Dashboard style */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-[#c3c6d7]/30">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#2563eb] text-[11px] font-bold mb-1">
-            <Activity className="w-3 h-3" />
-            AI Computer Vision Inference Console
-          </div>
           <h1 className="font-sans text-2xl font-bold text-[#131b2e] tracking-tight">
             New Renal Diagnostic Analysis
           </h1>
