@@ -96,8 +96,7 @@ export const ConfidenceChart: React.FC<ConfidenceChartProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
-      {/* Header */}
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2">
@@ -111,7 +110,6 @@ export const ConfidenceChart: React.FC<ConfidenceChartProps> = ({
           </p>
         </div>
 
-        {/* Statistical Averages Badge */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
           <div className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-800 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -136,12 +134,10 @@ export const ConfidenceChart: React.FC<ConfidenceChartProps> = ({
         </div>
       </div>
 
-      {/* Chart */}
       <div className="w-full h-64 mt-4">
         <Bar data={chartData} options={options} />
       </div>
 
-      {/* Footer Notes */}
       <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
         <span className="flex items-center gap-1 text-[11px] text-slate-400">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />

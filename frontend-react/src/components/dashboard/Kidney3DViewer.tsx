@@ -166,9 +166,8 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full min-h-[250px] lg:min-h-[265px] rounded-2xl bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border border-slate-800 shadow-md overflow-hidden flex flex-col ${className}`}
+      className={`relative w-full h-full min-h-[380px] rounded-2xl bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border border-slate-800 shadow-md overflow-hidden flex flex-col ${className}`}
     >
-      {/* Top Banner */}
       <div className="absolute top-2.5 left-3 z-10 flex items-center gap-2 pointer-events-none">
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-850/90 backdrop-blur-md border border-slate-700 shadow-sm text-[10px] font-medium text-slate-200">
           <Layers className="w-3 h-3 text-rose-400" />
@@ -176,16 +175,13 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
         </div>
       </div>
 
-      {/* 3D Canvas */}
       <div className="w-full h-full flex-1 cursor-grab active:cursor-grabbing">
         <Canvas
           camera={{ position: [0, 0.05, 2.7], fov: 40 }}
           shadows
           gl={{ antialias: true, alpha: true }}
         >
-          {/* Medical Studio Lighting Rig */}
           <ambientLight intensity={1.1} />
-          {/* Main Key Light */}
           <directionalLight
             position={[5, 6, 5]}
             intensity={2.2}
@@ -194,9 +190,7 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
             shadow-mapSize-height={1024}
             shadow-bias={-0.0001}
           />
-          {/* Soft Cool Fill Light */}
           <directionalLight position={[-5, 2, 3]} intensity={1.0} color="#dbeafe" />
-          {/* Rear Rim/Contour Light */}
           <directionalLight position={[0, 4, -5]} intensity={1.8} color="#fca5a5" />
           <directionalLight position={[-3, -4, -3]} intensity={0.9} color="#93c5fd" />
 
@@ -233,7 +227,6 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
         </Canvas>
       </div>
 
-      {/* Floating Control Toolbar */}
       <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700 shadow-lg">
         <button
           type="button"

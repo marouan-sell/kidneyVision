@@ -147,17 +147,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
   // Backend analyses state
   const [backendScans, setBackendScans] = useState<ScanRecord[]>([]);
 
-  // Filter state
   const [dateRange, setDateRange] = useState<DateRangeOption>('30D');
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<Diagnosis | 'all'>('all');
-
-  // Modal inspection state
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
-
-  // Live aggregated DB statistics (to support arbitrarily large archives)
   const [liveStats, setLiveStats] = useState<DashboardStats | null>(null);
 
-  // Load real analyses from Laravel API and global DB statistics
   const loadBackendScans = async () => {
     try {
       const [analysesResult, statsResult] = await Promise.allSettled([
@@ -176,7 +170,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
         setLiveStats(statsResult.value);
       }
     } catch {
-      // Backend offline or user not logged in; retain real empty state
       setBackendScans([]);
     }
   };
@@ -185,17 +178,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
     loadBackendScans();
   }, []);
 
-  // Real scans from backend database (authenticated user)
   const allScans = useMemo(() => {
     return backendScans;
   }, [backendScans]);
 
-  // Filter scans by active date range
   const filteredRangeScans = useMemo(() => {
     return filterScansByDateRange(allScans, dateRange);
   }, [allScans, dateRange]);
 
-  // Derived metrics & chart datasets
   const metrics = useMemo(() => {
     const computed = computeDashboardMetrics(filteredRangeScans);
     if (dateRange === 'ALL' && liveStats && liveStats.totalScans > computed.totalScans) {
@@ -256,7 +246,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
 
   return (
     <div className={`min-h-full bg-slate-50 flex flex-col text-slate-800 antialiased selection:bg-sky-100 selection:text-sky-900 ${!hideSidebar ? 'min-h-screen' : ''}`}>
-      {/* 1. Sidebar Navigation (shown only when not embedded in PortalLayout) */}
       {!hideSidebar && (
         <DashboardSidebar
           isOpenMobile={isOpenMobile}
@@ -265,9 +254,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
         />
       )}
 
-      {/* Main Content Area */}
       <div className={`flex-1 flex flex-col min-w-0 ${!hideSidebar ? 'lg:pl-64' : ''}`}>
-        {/* Mobile Top Header Bar (only when standalone) */}
         {!hideSidebar && (
           <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200">
             <button
@@ -285,7 +272,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
           </div>
         )}
 
-        {/* 2. Top Header with Controls */}
         <DashboardHeader
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
@@ -296,83 +282,64 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
           pendingCount={metrics.pendingReviewCount}
         />
 
-        {/* Dashboard Body Container */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
-          {/* 3. Top KPI Cards */}
           <section aria-label="Key Performance Indicators">
             <KpiGrid metrics={metrics} dateRange={dateRange} />
           </section>
 
-          {/* 4. Main Visual Section: 3D Kidney & Diagnostic Overview */}
           <section
-            aria-label="3D Kidney Anatomy and Diagnostic Overview"
+            aria-label="Diagnostic Overview and 3D Kidney Anatomy"
             className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
           >
-            {/* Left 3D Kidney Viewer (compact 4 cols on lg) */}
-            <div className="lg:col-span-4 flex flex-col h-full">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  3D Anatomical Reference
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Renal Anatomy
-                </span>
-              </div>
-              <div className="flex-1 min-h-0">
-                <Kidney3DViewer />
-              </div>
+            <div className="lg:col-span-8 flex flex-col h-full min-h-[380px]">
+              <DiagnosticOverview
+                metrics={metrics}
+                distribution={diagnosticDistribution}
+                selectedDiagnosis={selectedDiagnosis}
+                onSelectDiagnosis={setSelectedDiagnosis}
+              />
             </div>
 
-            {/* Right Diagnostic Overview (8 cols on lg) */}
-            <div className="lg:col-span-8 flex flex-col h-full">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Classification Breakdown
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Cohort: {metrics.totalScans} cases
-                </span>
+            <div className="lg:col-span-4 flex flex-col h-full min-h-[380px]">
+              <Kidney3DViewer />
+            </div>
+          </section>
+
+          <section aria-label="Clinical Analytics Visualizations" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              <div className="h-full">
+                <ScanVolumeChart data={timelineData} />
               </div>
-              <div className="flex-1 min-h-0">
-                <DiagnosticOverview
-                  metrics={metrics}
-                  distribution={diagnosticDistribution}
-                  selectedDiagnosis={selectedDiagnosis}
-                  onSelectDiagnosis={setSelectedDiagnosis}
+              <div className="h-full">
+                <ConfidenceChart
+                  buckets={confidenceBuckets}
+                  normalAvg={metrics.normalAverageConfidence}
+                  stoneAvg={metrics.stoneAverageConfidence}
+                  cystAvg={metrics.cystAverageConfidence}
+                  tumorAvg={metrics.tumorAverageConfidence}
                 />
               </div>
             </div>
-          </section>
 
-          {/* 5. Analytics Section */}
-          <section aria-label="Clinical Analytics Visualizations" className="space-y-6">
-            {/* Row 1: Scan Volume Trends + Confidence Calibration */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ScanVolumeChart data={timelineData} />
-              <ConfidenceChart
-                buckets={confidenceBuckets}
-                normalAvg={metrics.normalAverageConfidence}
-                stoneAvg={metrics.stoneAverageConfidence}
-                cystAvg={metrics.cystAverageConfidence}
-                tumorAvg={metrics.tumorAverageConfidence}
-              />
-            </div>
-
-            {/* Row 2: Risk Stratification, Sweep Laterality & Demographics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <RiskDistribution
-                distribution={riskDistribution}
-                totalScans={metrics.totalScans}
-              />
-              <LateralityChart
-                distribution={lateralityDistribution}
-                totalScans={metrics.totalScans}
-              />
-              <DemographicsChart cohorts={ageCohorts} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+              <div className="h-full">
+                <RiskDistribution
+                  distribution={riskDistribution}
+                  totalScans={metrics.totalScans}
+                />
+              </div>
+              <div className="h-full">
+                <LateralityChart
+                  distribution={lateralityDistribution}
+                  totalScans={metrics.totalScans}
+                />
+              </div>
+              <div className="h-full">
+                <DemographicsChart cohorts={ageCohorts} />
+              </div>
             </div>
           </section>
 
-          {/* 6. Recent Clinical Activity Table */}
           <section aria-label="Recent Clinical Activity and Inference Audit">
             <RecentClinicalActivity
               scans={filteredRangeScans}
@@ -384,7 +351,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
         </main>
       </div>
 
-      {/* Interactive Scan Review Modal */}
       <ScanDetailModal
         scan={selectedScan}
         onClose={() => setSelectedScan(null)}

@@ -142,8 +142,7 @@ export const ScanVolumeChart: React.FC<ScanVolumeChartProps> = ({ data }) => {
   const totalScansCount = data.reduce((acc, d) => acc + (d.total || 0), 0);
 
   return (
-    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
-      {/* Card Header with View Toggle */}
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2">
@@ -157,7 +156,6 @@ export const ScanVolumeChart: React.FC<ScanVolumeChartProps> = ({ data }) => {
           </p>
         </div>
 
-        {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs self-start sm:self-auto">
           <button
             type="button"
@@ -217,12 +215,10 @@ export const ScanVolumeChart: React.FC<ScanVolumeChartProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Canvas container */}
       <div className="w-full h-64 mt-4">
         <Line data={chartData} options={options} />
       </div>
 
-      {/* Footer Insight */}
       <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
         <span className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />

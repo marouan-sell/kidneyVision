@@ -11,7 +11,6 @@ interface KpiGridProps {
 export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* 1. Total Scans */}
       <KpiCard
         title="Total Scans"
         value={metrics.totalScans}
@@ -31,7 +30,6 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         }
       />
 
-      {/* 2. Normal Scans */}
       <KpiCard
         title="Normal Findings"
         value={metrics.normalScans}
@@ -50,7 +48,6 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         }
       />
 
-      {/* 3. Pathology Findings (Stones, Cysts, Tumors) */}
       <KpiCard
         title="Pathology Findings"
         value={metrics.pathologyDetections}
@@ -70,8 +67,6 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         }
       />
 
-
-      {/* 4. Mean AI Confidence */}
       <KpiCard
         title="Mean AI Confidence"
         value={`${metrics.averageConfidence}%`}

@@ -78,7 +78,7 @@ export const DemographicsChart: React.FC<DemographicsChartProps> = ({ cohorts })
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
           <Users2 className="w-4 h-4 text-slate-400 stroke-[1.75]" />
@@ -89,7 +89,7 @@ export const DemographicsChart: React.FC<DemographicsChartProps> = ({ cohorts })
         </div>
       </div>
 
-      <div className="w-full h-48 mt-3">
+      <div className="w-full h-52 my-auto py-2">
         <Bar data={chartData} options={options} />
       </div>
 
