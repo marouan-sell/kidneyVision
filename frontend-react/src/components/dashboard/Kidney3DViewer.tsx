@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Float, Html, Center, useGLTF } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { RotateCcw, ZoomIn, ZoomOut, Play, Pause, Activity, Layers } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Play, Pause, Layers } from 'lucide-react';
 import {
   createKidneyGeometry,
   createKidneyDiffuseTexture,
@@ -170,8 +170,8 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
     >
       {/* Top Banner */}
       <div className="absolute top-2.5 left-3 z-10 flex items-center gap-2 pointer-events-none">
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-850/90 backdrop-blur-md border border-slate-700 shadow-sm text-[10px] font-medium text-slate-200">
-          <Activity className="w-3 h-3 text-rose-400" />
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-850/90 backdrop-blur-md border border-slate-700 shadow-sm text-[10px] font-medium text-slate-200">
+          <Layers className="w-3 h-3 text-rose-400" />
           3D Anatomy
         </div>
       </div>

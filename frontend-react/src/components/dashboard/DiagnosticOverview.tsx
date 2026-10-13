@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, AlertTriangle, Clock, Activity, ArrowRight, CircleDot, AlertOctagon } from 'lucide-react';
+import { Activity, ArrowRight } from 'lucide-react';
 import type { DashboardMetrics, DiagnosticDistributionPoint } from '../../types/analytics';
 import type { Diagnosis } from '../../types/scan';
 
@@ -23,9 +23,7 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
         <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-sky-50 text-sky-700">
-                <Activity className="w-3.5 h-3.5" />
-              </span>
+              <Activity className="w-4 h-4 text-slate-400 stroke-[1.75]" />
               <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
                 4-Class Diagnostic Breakdown & Prevalence
               </h2>
@@ -152,10 +150,8 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-1 rounded-md bg-emerald-100 text-emerald-700">
-                <ShieldCheck className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 Low Risk
               </span>
             </div>
@@ -183,10 +179,8 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-1 rounded-md bg-rose-100 text-rose-700">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                 Calculus
               </span>
             </div>
@@ -212,10 +206,8 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-1 rounded-md bg-teal-100 text-teal-700">
-                <CircleDot className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
                 Benign Cyst
               </span>
             </div>
@@ -241,10 +233,8 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-1 rounded-md bg-purple-100 text-purple-700">
-                <AlertOctagon className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
                 Urgent Mass
               </span>
             </div>
@@ -270,10 +260,8 @@ export const DiagnosticOverview: React.FC<DiagnosticOverviewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-1 rounded-md bg-amber-100 text-amber-700">
-                <Clock className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 Triage
               </span>
             </div>

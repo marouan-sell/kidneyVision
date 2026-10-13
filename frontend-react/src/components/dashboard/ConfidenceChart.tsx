@@ -101,9 +101,7 @@ export const ConfidenceChart: React.FC<ConfidenceChartProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-blue-700">
-              <BarChart3 className="w-4 h-4" />
-            </span>
+            <BarChart3 className="w-4 h-4 text-slate-400 stroke-[1.75]" />
             <h3 className="text-sm font-bold text-slate-900">
               AI Confidence Distribution & Calibration
             </h3>

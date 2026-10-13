@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
-  Activity, History, Settings, LogOut, FileText, 
+  History, Settings, LogOut, FileText, 
   LayoutDashboard, HelpCircle, Menu, X, PlusCircle
 } from "lucide-react";
-import { KidneyMark } from "./components/common/Brand";
 
 import LandingPage from "./components/LandingPage";
 import LoginPage from "./components/auth/LoginPage";
@@ -62,7 +61,6 @@ function PortalLayout() {
           className="flex items-center gap-2 group cursor-pointer"
           aria-label="KidneyVision AI — Clinical Portal Dashboard"
         >
-          <KidneyMark className="h-7 w-7 text-[#2563eb] shrink-0 group-hover:scale-105 transition-transform" />
           <div className="flex flex-col text-left">
             <span className="font-sans font-bold text-base text-[#131b2e] tracking-tight group-hover:text-[#2563eb] transition-colors leading-none">
               KidneyVision <span className="text-[#2563eb]">AI</span>
@@ -92,16 +90,13 @@ function PortalLayout() {
             className="block px-2 py-3 mb-2 text-left group rounded-xl hover:bg-[#eaedff]/60 transition-all cursor-pointer"
             aria-label="KidneyVision AI — Clinical Portal Dashboard"
           >
-            <div className="flex items-center gap-2.5">
-              <KidneyMark className="h-8 w-8 text-[#2563eb] shrink-0 group-hover:scale-105 transition-transform" />
-              <div>
-                <h1 className="font-sans text-xl font-extrabold text-[#111827] tracking-tight leading-none group-hover:text-[#2563eb] transition-colors">
-                  KidneyVision <span className="text-[#2563eb]">AI</span>
-                </h1>
-                <p className="font-sans text-[10px] text-[#737686] uppercase tracking-wider mt-1.5 font-bold group-hover:text-[#2563eb]/80 transition-colors">
-                  Clinical Portal
-                </p>
-              </div>
+            <div>
+              <h1 className="font-sans text-xl font-extrabold text-[#111827] tracking-tight leading-none group-hover:text-[#2563eb] transition-colors">
+                KidneyVision <span className="text-[#2563eb]">AI</span>
+              </h1>
+              <p className="font-sans text-[10px] text-[#737686] uppercase tracking-wider mt-1.5 font-bold group-hover:text-[#2563eb]/80 transition-colors">
+                Clinical Portal
+              </p>
             </div>
           </Link>
 
@@ -126,7 +121,7 @@ function PortalLayout() {
             <Link to="/analysis" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
                 activeTab === "analysis" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"
             }`}>
-              <Activity className="w-4.5 h-4.5 shrink-0" /> New Analysis
+              <PlusCircle className="w-4.5 h-4.5 shrink-0" /> New Analysis
             </Link>
             <Link to="/history" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
                 activeTab === "history" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"

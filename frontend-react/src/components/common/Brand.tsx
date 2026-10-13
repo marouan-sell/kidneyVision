@@ -62,8 +62,7 @@ export function KidneyMark({ className = "h-9 w-9" }: { className?: string }) {
 export function Brand({ light = false, variant }: { light?: boolean; variant?: "light" | "default" }) {
   const isLight = light || variant === "light";
   return (
-    <div className="flex items-center gap-3">
-      <KidneyMark className="h-10 w-10 shrink-0" />
+    <div className="flex items-center gap-2">
       <div>
         <div className={`text-lg font-extrabold tracking-normal ${isLight ? "text-white" : "text-[#0f3f88]"}`}>
           KidneyVision <span className="text-[#2563eb]">AI</span>
