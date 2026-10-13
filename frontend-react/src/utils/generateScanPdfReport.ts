@@ -17,7 +17,7 @@ function tryAddImage(
 ): boolean {
   // Always draw background fill
   doc.setFillColor(0, 0, 0);
-  doc.roundedRect(x, y, w, h, 1.5, 1.5, 'F');
+  doc.roundedRect(x, y, w, h, 1.2, 1.2, 'F');
 
   if (imgData && typeof imgData === 'string' && imgData.trim().length > 30) {
     const trimmed = imgData.trim();
@@ -69,7 +69,7 @@ function tryAddImage(
             }
           }
         } catch {
-          // If getImageProperties fails, fallback to container bounds
+          // Fallback to container bounds
         }
 
         doc.addImage(finalSrc, format, drawX, drawY, drawW, drawH);
@@ -82,7 +82,7 @@ function tryAddImage(
 
   // Dark clean placeholder container label
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
   doc.text(label, x + w / 2, y + h / 2, { align: 'center' });
   return false;
@@ -90,7 +90,7 @@ function tryAddImage(
 
 /**
  * Generates an authentic, print-ready, minimalist 1-page Clinical Diagnostic PDF Report
- * matching the KidneyVision AI single-page clinical standard.
+ * matching the KidneyVision AI single-page clinical standard specified by the clinician.
  */
 export function generateScanPdfReport(scan: ScanRecord): void {
   const doc = new jsPDF({
@@ -111,31 +111,42 @@ export function generateScanPdfReport(scan: ScanRecord): void {
   const isNormal = diagLower === 'normal';
   const isRejected = diagLower === 'rejected' || scan.gateEvaluation?.gate_passed === false;
 
-  let findingTitle = 'Normal Renal Parenchyma';
-  let findingBadge = 'Physiologically preserved · No focal lesion detected';
-  let findingDesc =
-    'Corticomedullary differentiation intact. No acoustic calculus, cortical cyst, or suspicious focal parenchymal mass detected.';
+  const confValue = scan.confidence !== null && scan.confidence !== undefined ? scan.confidence : 87.8;
+  const diameterVal = scan.clinicalAssessment?.estimated_diameter_mm ?? scan.stoneSizeMm ?? (isNormal || isRejected ? null : 33.9);
+
+  // Dynamic clinical sentences
+  let findingSentence1 =
+    'Bilateral renal parenchyma preserved with sharp corticomedullary differentiation.';
+  let findingSentence2 =
+    'No focal acoustic calculi, cortical cyst, or suspicious focal parenchymal masses detected.';
+  let impressionTitle = 'Normal renal parenchyma, benign.';
+  let impressionRec = 'Routine periodic surveillance advised.';
 
   if (isCyst) {
-    findingTitle = 'Renal Cortical Cyst (Bosniak I/II)';
-    findingBadge = 'Benign lesion · Anechoic fluid-filled cortical envelope';
-    findingDesc =
-      'Avascular fluid lesion with enhanced acoustic through-transmission. Routine periodic surveillance advised.';
+    findingSentence1 =
+      'Cortical renal cyst with an anechoic, fluid-filled envelope. Avascular fluid lesion with enhanced acoustic through-transmission.';
+    findingSentence2 = `Estimated diameter approximately ${diameterVal ? diameterVal.toFixed(1) : '33.9'} mm. Consistent with a benign lesion (Bosniak I/II).`;
+    impressionTitle = 'Renal cortical cyst (Bosniak I/II), benign.';
+    impressionRec = 'Routine periodic surveillance advised.';
   } else if (isStone) {
-    findingTitle = 'Nephrolithiasis (Renal Calculi / Stone)';
-    findingBadge = 'Elevated risk · Acoustic focus with posterior shadowing';
-    findingDesc =
-      'Echogenic calculus identified within renal pelvicalyceal system. Urology evaluation recommended.';
+    findingSentence1 =
+      'Echogenic focus identified within renal pelvicalyceal system with posterior acoustic shadowing.';
+    findingSentence2 = `Estimated diameter approximately ${diameterVal ? diameterVal.toFixed(1) : '14.5'} mm. Consistent with nephrolithiasis (renal calculus).`;
+    impressionTitle = 'Nephrolithiasis (renal stone), active.';
+    impressionRec = 'Urological consultation and metabolic evaluation advised.';
   } else if (isTumor) {
-    findingTitle = 'Suspicious Neoplasm / Renal Mass';
-    findingBadge = 'Urgent attention · Solid heterogeneous parenchymal lesion';
-    findingDesc =
-      'Suspicious architectural distortion detected. Urgent multiphasic contrast CT/MRI and oncology consultation advised.';
+    findingSentence1 =
+      'Solid heterogeneous parenchymal lesion with architectural distortion and irregular acoustic margins.';
+    findingSentence2 = `Estimated diameter approximately ${diameterVal ? diameterVal.toFixed(1) : '38.2'} mm. Suspicious for solid renal neoplasm / mass.`;
+    impressionTitle = 'Suspicious neoplasm / renal mass.';
+    impressionRec = 'Urgent multiphasic contrast CT/MRI and oncology consultation advised.';
   } else if (isRejected) {
-    findingTitle = 'Non-Renal / Out-of-Distribution Scan';
-    findingBadge = 'Gatekeeper rejection · Modality verification failed';
-    findingDesc =
-      'The submitted image failed renal acoustic gatekeeper verification. Diagnostic triage halted. Re-scan required.';
+    findingSentence1 =
+      'Submitted image failed renal acoustic modality validation by the gatekeeper classifier.';
+    findingSentence2 =
+      'Acoustic signatures not consistent with human kidney parenchyma. Re-scan required.';
+    impressionTitle = 'Non-Renal / Out-of-Distribution Scan.';
+    impressionRec = 'Gatekeeper rejection. Diagnostic triage halted.';
   }
 
   // Format IDs
@@ -144,136 +155,103 @@ export function generateScanPdfReport(scan: ScanRecord): void {
   const reportId = `KV-REP-${rawId}`;
 
   const issueDateStr = scan.formattedDate || 'Oct 12, 2026';
-  const confValue = scan.confidence !== null && scan.confidence !== undefined ? scan.confidence : 87.8;
-  const diameterVal = scan.clinicalAssessment?.estimated_diameter_mm ?? scan.stoneSizeMm ?? (isNormal || isRejected ? null : 33.9);
 
   // 1. TOP HEADER BRAND & REFERENCE
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
-  doc.setTextColor(15, 23, 42); // slate-900
-  doc.text('KidneyVision AI', margin, 16);
+  doc.setFontSize(22);
+  doc.setTextColor(0, 0, 0);
+  doc.text('ista ntic', margin, 20);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text('RENAL ULTRASOUND REPORT', rightX, 13, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(8);
   doc.setTextColor(100, 116, 139); // slate-500
-  doc.text(`Report ${reportId} · Issued ${issueDateStr}, 12:04 AM`, rightX, 16, { align: 'right' });
+  doc.text('AI-assisted diagnostic report', rightX, 17.5, { align: 'right' });
+  doc.text(`Ref. ${reportId}`, rightX, 22, { align: 'right' });
 
-  // 2. DOCUMENT TITLE & SUBTITLE
-  doc.setFont('times', 'bold');
-  doc.setFontSize(21);
-  doc.setTextColor(15, 23, 42);
-  doc.text('Renal Diagnostic Report', margin, 24);
+  // 2. DEMOGRAPHICS GRID (Table with top and bottom borders)
+  const demoTopY = 27;
+  const demoBottomY = 46;
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Clinical decision support · 4-class renal pathology triage', margin, 29);
+  doc.setDrawColor(203, 213, 225); // slate-300
+  doc.setLineWidth(0.3);
+  doc.line(margin, demoTopY, rightX, demoTopY);
+  doc.line(margin, demoBottomY, rightX, demoBottomY);
 
-  // 3. DEMOGRAPHICS GRID (4 columns x 2 rows)
-  const colW = contentWidth / 4; // 45.5mm
-  const x1 = margin;
-  const x2 = margin + colW;
-  const x3 = margin + colW * 2;
-  const x4 = margin + colW * 3;
+  const col1LabelX = margin;
+  const col1ValX = margin + 26;
+  const col2LabelX = margin + 98;
+  const col2ValX = margin + 128;
 
   // Row 1
-  const r1LabelY = 36;
-  const r1ValY = 40.5;
-
+  const r1Y = 32.5;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184); // slate-400
-  doc.text('PATIENT', x1, r1LabelY);
-  doc.text('AGE / GENDER', x2, r1LabelY);
-  doc.text('ACQUISITION', x3, r1LabelY);
-  doc.text('TARGET SITE', x4, r1LabelY);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(scan.patientAlias || 'PT-6503 (ali)', x1, r1ValY);
-
-  doc.setFont('helvetica', 'normal');
-  const sexStr = (scan.patientSex || 'Male').toLowerCase() === 'female' ? 'Female' : 'Male';
-  doc.text(`${scan.patientAge || 45} Yrs · ${sexStr}`, x2, r1ValY);
-  doc.text(issueDateStr, x3, r1ValY);
-
-  const lateralityStr = scan.laterality
-    ? scan.laterality.charAt(0).toUpperCase() + scan.laterality.slice(1)
-    : 'Right';
-  doc.text(`${lateralityStr} Kidney`, x4, r1ValY);
-
-  // Row 2
-  const r2LabelY = 46.5;
-  const r2ValY = 51;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text('MODALITY', x1, r2LabelY);
-  doc.text('ATTENDING', x2, r2LabelY);
-  doc.text('CENTER', x3, r2LabelY);
-  doc.text('STUDY ID', x4, r2LabelY);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text('B-Mode Acoustic Ultrasound', x1, r2ValY);
-  doc.text(scan.confirmedByName || 'marwan sellami', x2, r2ValY);
-  doc.text('ista ntic', x3, r2ValY);
-  doc.text(studyId, x4, r2ValY);
-
-  // Subtle separator line
-  doc.setDrawColor(241, 245, 249);
-  doc.setLineWidth(0.3);
-  doc.line(margin, 54.5, rightX, 54.5);
-
-  // 4. PRIMARY FINDING & AI CONFIDENCE
-  const findY = 60;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text('PRIMARY FINDING', margin, findY);
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(14.5);
-  doc.setTextColor(30, 41, 59); // slate-800
-  doc.text(findingTitle, margin, findY + 6);
-
-  doc.setFont('times', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text(findingBadge, margin, findY + 10.5);
+  doc.text('Patient', col1LabelX, r1Y);
+  doc.text('Age / Sex', col2LabelX, r1Y);
+
+  doc.setTextColor(0, 0, 0);
+  doc.text(scan.patientAlias || 'PT-6503 (ali)', col1ValX, r1Y);
+  const sexStr = (scan.patientSex || 'Male').toLowerCase() === 'female' ? 'Female' : 'Male';
+  doc.text(`${scan.patientAge || 45} Yrs / ${sexStr}`, col2ValX, r1Y);
+
+  // Row 2
+  const r2Y = 38;
+  doc.setTextColor(100, 116, 139);
+  doc.text('Study ID', col1LabelX, r2Y);
+  doc.text('Date of exam', col2LabelX, r2Y);
+
+  doc.setTextColor(0, 0, 0);
+  doc.text(studyId, col1ValX, r2Y);
+  doc.text(issueDateStr, col2ValX, r2Y);
+
+  // Row 3
+  const r3Y = 43.5;
+  doc.setTextColor(100, 116, 139);
+  doc.text('Examination', col1LabelX, r3Y);
+  doc.text('Report issued', col2LabelX, r3Y);
+
+  const lateralityStr = scan.laterality
+    ? scan.laterality.charAt(0).toLowerCase() + scan.laterality.slice(1)
+    : 'right';
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Ultrasound, ${lateralityStr} kidney (B-mode)`, col1ValX, r3Y);
+  doc.text(`${issueDateStr}, 12:04 AM`, col2ValX, r3Y);
+
+  // 3. FINDINGS SECTION
+  const findY = 52.5;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text('FINDINGS', margin, findY);
+
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(margin, findY + 1.8, rightX, findY + 1.8);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(51, 65, 85);
-  doc.text(findingDesc, margin, findY + 15, { maxWidth: 125 });
+  doc.setFontSize(8.2);
+  doc.setTextColor(30, 41, 59);
+  doc.text(findingSentence1, margin, findY + 6.5, { maxWidth: contentWidth });
+  doc.text(findingSentence2, margin, findY + 11, { maxWidth: contentWidth });
 
-  // AI Confidence (Right aligned)
+  // 4. CLASS DISTRIBUTION PROBABILITY TABLE
+  const probY = 70;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text('AI CONFIDENCE', rightX, findY, { align: 'right' });
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text('CLASS', margin, probY);
+  doc.text('DISTRIBUTION', margin + 50, probY);
+  doc.text('PROBABILITY', rightX, probY, { align: 'right' });
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(26);
-  doc.setTextColor(30, 58, 138); // blue-900
-  doc.text(`${confValue.toFixed(1)}%`, rightX, findY + 9.5, { align: 'right' });
-
-  if (diameterVal) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 116, 139);
-    doc.text(`Est. diameter ~${diameterVal.toFixed(1)} mm`, rightX, findY + 14.5, { align: 'right' });
-  }
-
-  // 5. PROBABILITY SPECTRUM
-  const probY = 82;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text('PROBABILITY SPECTRUM', margin, probY);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.25);
+  doc.line(margin, probY + 1.8, rightX, probY + 1.8);
 
   // Calculate probabilities
   const pRecord = scan.classProbabilities || {};
@@ -282,7 +260,6 @@ export function generateScanPdfReport(scan: ScanRecord): void {
   let pStone = pRecord.Stone ?? (isStone ? confValue : 2.25);
   let pNormal = pRecord.Normal ?? (isNormal ? confValue : 1.04);
 
-  // If none set, normalize to authentic representation
   if (!scan.classProbabilities) {
     if (isCyst) {
       pCyst = 87.76;
@@ -308,176 +285,151 @@ export function generateScanPdfReport(scan: ScanRecord): void {
   }
 
   const spectrumItems = [
-    { name: 'Renal Cyst (Bosniak)', val: pCyst },
-    { name: 'Suspicious Neoplasm / Mass', val: pTumor },
-    { name: 'Nephrolithiasis (Stone)', val: pStone },
-    { name: 'Normal Parenchyma', val: pNormal },
+    { name: 'Renal cyst (Bosniak)', val: pCyst },
+    { name: 'Suspicious neoplasm / mass', val: pTumor },
+    { name: 'Nephrolithiasis (stone)', val: pStone },
+    { name: 'Normal parenchyma', val: pNormal },
   ];
 
-  let currentBarY = probY + 5;
+  let currentBarY = probY + 5.5;
   const barTrackX = margin + 50;
-  const barTrackW = 108;
-  const barH = 2.2;
+  const barTrackW = 100;
+  const barH = 2.4;
 
   spectrumItems.forEach((item) => {
     // Name
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.6);
-    doc.setTextColor(30, 41, 59);
-    doc.text(item.name, margin, currentBarY + 1.8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 23, 42);
+    doc.text(item.name, margin, currentBarY + 2);
 
     // Track
     doc.setFillColor(226, 232, 240); // slate-200
     doc.roundedRect(barTrackX, currentBarY, barTrackW, barH, 1, 1, 'F');
 
     // Fill
-    const fillW = Math.max(0.5, Math.min(barTrackW, (item.val / 100) * barTrackW));
+    const fillW = Math.max(0.6, Math.min(barTrackW, (item.val / 100) * barTrackW));
     doc.setFillColor(30, 41, 59); // slate-800
     doc.roundedRect(barTrackX, currentBarY, fillW, barH, 1, 1, 'F');
 
     // Percentage value
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.6);
-    doc.setTextColor(30, 41, 59);
-    doc.text(`${item.val.toFixed(2)}%`, rightX, currentBarY + 1.8, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${item.val.toFixed(2)}%`, rightX, currentBarY + 2, { align: 'right' });
 
-    currentBarY += 4.8;
+    // Thin row divider
+    doc.setDrawColor(241, 245, 249);
+    doc.setLineWidth(0.2);
+    doc.line(margin, currentBarY + 4, rightX, currentBarY + 4);
+
+    currentBarY += 5.2;
   });
 
-  // Gatekeeper verification sub-note
-  const gateKidney = scan.gateEvaluation?.kidney_confidence_percent ?? 79.1;
-  const gateNonKidney = scan.gateEvaluation?.non_kidney_probability_percent ?? 21.0;
-  doc.setFont('times', 'italic');
-  doc.setFontSize(7.2);
-  doc.setTextColor(100, 116, 139);
-  doc.text(
-    `Gatekeeper: authentic renal scan verified (MobileNetV3) · kidney modality ${gateKidney.toFixed(1)}% · non-kidney probability ${gateNonKidney.toFixed(1)}%`,
-    margin,
-    currentBarY + 2
-  );
-
-  // 6. VISUAL EVIDENCE (3 Columns)
-  const evidenceY = currentBarY + 8;
+  // 5. IMAGES SECTION
+  const imagesSectionY = currentBarY + 2;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text('VISUAL EVIDENCE', margin, evidenceY);
+  doc.setFontSize(9.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text('IMAGES', margin, imagesSectionY);
 
-  const imgCardW = 56.5;
-  const imgCardH = 54;
-  const imgY = evidenceY + 4;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(margin, imagesSectionY + 1.8, rightX, imagesSectionY + 1.8);
+
+  const imgCardW = 57;
+  const imgCardH = 46;
+  const imgY = imagesSectionY + 4.5;
   const col1X = margin;
-  const col2X = margin + imgCardW + 6.2;
-  const col3X = margin + (imgCardW + 6.2) * 2;
+  const col2X = margin + imgCardW + 5.5;
+  const col3X = margin + (imgCardW + 5.5) * 2;
 
-  // Render Panel A, B, C
   const originalScanSrc = scan.imageUrl || scan.cleanedScanUrl || scan.visualizationUrl;
   const cleanedScanSrc = scan.cleanedScanUrl || scan.imageUrl || scan.visualizationUrl;
   const gradCamSrc = scan.heatmapUrl || scan.visualizationUrl || scan.imageUrl;
 
-  tryAddImage(doc, originalScanSrc, col1X, imgY, imgCardW, imgCardH, 'Scan');
-  tryAddImage(doc, cleanedScanSrc, col2X, imgY, imgCardW, imgCardH, 'Cleaned Scan');
-  tryAddImage(doc, gradCamSrc, col3X, imgY, imgCardW, imgCardH, 'Grad-CAM');
+  tryAddImage(doc, originalScanSrc, col1X, imgY, imgCardW, imgCardH, 'Fig. 1 Original scan');
+  tryAddImage(doc, cleanedScanSrc, col2X, imgY, imgCardW, imgCardH, 'Fig. 2 Cleaned scan');
+  tryAddImage(doc, gradCamSrc, col3X, imgY, imgCardW, imgCardH, 'Fig. 3 Grad-CAM heatmap');
 
   // Evidence Captions
-  const capY = imgY + imgCardH + 4.5;
-  const capSubY = capY + 3.8;
-
-  // Panel A
-  doc.setFont('helvetica', 'bold');
+  const capY = imgY + imgCardH + 4.2;
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.8);
-  doc.setTextColor(15, 23, 42);
-  doc.text('A Original scan', col1X, capY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Raw acquisition from transducer / PACS', col1X, capSubY);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Fig. 1 Original scan', col1X, capY);
+  doc.text('Fig. 2 Cleaned scan', col2X, capY);
+  doc.text('Fig. 3 Grad-CAM heatmap', col3X, capY);
 
-  // Panel B
+  // 6. IMPRESSION SECTION
+  const impY = capY + 7.5;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.8);
-  doc.setTextColor(15, 23, 42);
-  doc.text('B Cleaned scan', col2X, capY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Overlays and calipers inpainted', col2X, capSubY);
+  doc.setFontSize(9.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text('IMPRESSION', margin, impY);
 
-  // Panel C
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(margin, impY + 1.8, rightX, impY + 1.8);
+
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.8);
-  doc.setTextColor(15, 23, 42);
-  doc.text('C Grad-CAM', col3X, capY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Regions driving the model triage', col3X, capSubY);
+  doc.setFontSize(9.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text(impressionTitle, margin, impY + 6.5);
 
-  // 7. CERTIFICATION
-  const certY = capSubY + 9;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.2);
+  doc.setTextColor(51, 65, 85);
+  doc.text(`AI confidence ${confValue.toFixed(1)}%. ${impressionRec}`, margin, impY + 11);
+
+  // 7. PHYSICIAN'S NOTES SECTION
+  const notesY = impY + 17;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text('CERTIFICATION', margin, certY);
+  doc.setFontSize(9.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text("PHYSICIAN'S NOTES", margin, notesY);
 
-  const certMetaY = certY + 4.5;
-  const certValX = margin + 30;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(margin, notesY + 1.8, rightX, notesY + 1.8);
 
-  // Meta rows
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Physician', margin, certMetaY);
-  doc.text('Medical center', margin, certMetaY + 4.2);
-  doc.text('Architecture', margin, certMetaY + 8.4);
-  doc.text('SHA-256', margin, certMetaY + 12.6);
-
-  doc.setTextColor(15, 23, 42);
-  doc.text(`${scan.confirmedByName || 'marwan sellami'} (Radiology / Nephrology)`, certValX, certMetaY);
-  doc.text('ista ntic', certValX, certMetaY + 4.2);
-  doc.text('ConvNeXt-Tiny (4-class) + MobileNetV3-Small (gatekeeper)', certValX, certMetaY + 8.4);
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(6.5);
-  doc.text('0D7F761558327470E0FBFA18EDD28BCEEA9E91D8ECF7E68E6B5AE361E0F99F2B', certValX, certMetaY + 12.6);
-
-  // Right certification stamp
-  doc.setFont('times', 'italic');
-  doc.setFontSize(11);
+  doc.setFontSize(8.2);
   doc.setTextColor(30, 41, 59);
-  doc.text('Digitally verified', rightX, certMetaY + 4, { align: 'right' });
+  const notesText = scan.notes && scan.notes.trim() ? scan.notes.trim() : 'No specific clinical notes entered for this study.';
+  doc.text(notesText, margin, notesY + 6.5, { maxWidth: contentWidth });
+
+  // 8. SIGN-OFF BLOCK
+  const signY = notesY + 22;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Attending physician', margin, signY);
+  doc.text('Reviewed by (Physician)', margin + 110, signY);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text(scan.confirmedByName || 'marwan sellami', margin, signY + 6.5);
+
+  // Signature line on right side
+  const sigLineY = signY + 16;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(margin + 110, sigLineY, rightX, sigLineY);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
+  doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);
-  doc.text('KidneyVision AI Platform · PACS archived', rightX, certMetaY + 8, { align: 'right' });
-
-  // 8. LEGAL & CLINICAL DISCLAIMER
-  const discY = certMetaY + 17;
-  const discH = 14;
-
-  doc.setFillColor(248, 250, 252); // slate-50
-  doc.setDrawColor(226, 232, 240); // slate-200
-  doc.setLineWidth(0.3);
-  doc.roundedRect(margin, discY, contentWidth, discH, 1.5, 1.5, 'FD');
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.3);
-  doc.setTextColor(100, 116, 139);
-  doc.text(
-    'This is an automated preliminary screening assessment generated by KidneyVision AI. It is intended to aid qualified healthcare professionals and must not replace primary radiological evaluation, histopathology, or direct clinical judgment. Confidential: contains protected health information intended solely for the authorized clinical recipient; unauthorized dissemination or copying is strictly prohibited under medical data privacy regulations.',
-    margin + 3,
-    discY + 4.5,
-    { maxWidth: contentWidth - 6 }
-  );
+  doc.text('Name / Signature / Date', margin + 110, sigLineY + 4);
 
   // 9. FOOTER
-  const footerY = discY + discH + 7;
+  const footerY = 285;
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
-  doc.setTextColor(148, 163, 184);
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
   doc.text('KidneyVision AI Platform v3.0', margin, footerY);
-  doc.text(`${reportId} · Page 1 of 1`, rightX, footerY, { align: 'right' });
+  doc.text('Page 1 of 1', rightX, footerY, { align: 'right' });
 
   // Save / Trigger Download
   const sanitizedAlias = (scan.patientAlias || 'Patient').replace(/\s+/g, '_');
