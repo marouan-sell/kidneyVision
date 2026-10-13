@@ -300,9 +300,7 @@ class SafeViewerErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="w-full h-full min-h-[250px] lg:min-h-[265px] rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 p-6 flex flex-col items-center justify-center text-center">
-          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-rose-400 mb-3 shadow-inner">
-            <Layers className="w-6 h-6" />
-          </div>
+          <Layers className="w-8 h-8 text-rose-400 mb-3 stroke-[1.75]" />
           <h4 className="text-sm font-semibold text-slate-200">3D Anatomical Reference</h4>
           <p className="text-xs text-slate-400 mt-1 max-w-[220px]">
             Renal 3D visualization engine standby mode.

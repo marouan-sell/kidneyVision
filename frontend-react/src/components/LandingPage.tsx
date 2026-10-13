@@ -203,8 +203,8 @@ export default function LandingPage({ onNavigateToAuth, onEnterPortalDirectly, o
           <Card className="grid gap-0 overflow-hidden md:grid-cols-3 lg:grid-cols-5">
             {stats.map(({ icon: Icon, value, label }) => (
               <div key={label} className="flex items-center gap-4 border-blue-100 p-5 md:border-r last:border-r-0">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-blue-200 bg-blue-100/70 text-[#2563eb]">
-                  <Icon className="h-7 w-7" />
+                <div className="shrink-0 text-sky-600">
+                  <Icon className="h-6 w-6 stroke-[1.75]" />
                 </div>
                 <div>
                   <div className="text-2xl font-extrabold text-[#0f56b3]">{value}</div>
@@ -227,8 +227,8 @@ export default function LandingPage({ onNavigateToAuth, onEnterPortalDirectly, o
                 className="reveal-item p-7 transition hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(37,99,235,0.12)]"
                 style={{ transitionDelay: `${index * 90}ms` } as CSSProperties}
               >
-                <div className="mb-6 grid h-16 w-16 place-items-center rounded-full bg-blue-100 text-[#2563eb]">
-                  <Icon className="h-8 w-8" />
+                <div className="mb-4 text-sky-600">
+                  <Icon className="h-6 w-6 stroke-[1.75]" />
                 </div>
                 <h3 className="font-extrabold text-[#0f3f88]">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[#37609d]">{text}</p>
@@ -244,17 +244,15 @@ export default function LandingPage({ onNavigateToAuth, onEnterPortalDirectly, o
           <Card className="mt-6 grid gap-4 p-6 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-center">
             {workflowSteps.map(({ number, icon: Icon, title, text }, index) => (
               <div key={title} className="contents">
-                <div className="flex items-center gap-5 rounded-lg bg-blue-50/60 p-4 lg:bg-transparent">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#0f6bdc] text-sm font-extrabold text-white">{number}</span>
-                  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-blue-200 bg-blue-100 text-[#2563eb]">
-                    <Icon className="h-8 w-8" />
-                  </span>
+                <div className="flex items-center gap-4 rounded-xl border border-slate-200/80 bg-white p-4">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-sky-50 text-sky-700 text-xs font-bold font-mono border border-sky-100">{number}</span>
+                  <Icon className="h-5 w-5 text-sky-600 stroke-[1.75] shrink-0" />
                   <div>
                     <h3 className="font-extrabold text-[#0f3f88]">{title}</h3>
                     <p className="mt-1 text-sm leading-6 text-[#37609d]">{text}</p>
                   </div>
                 </div>
-                {index < 2 ? <ArrowRight className="mx-auto hidden h-6 w-6 text-[#2563eb] lg:block" /> : null}
+                {index < 2 ? <ArrowRight className="mx-auto hidden h-5 w-5 text-slate-400 stroke-[1.75] lg:block" /> : null}
               </div>
             ))}
           </Card>
@@ -268,8 +266,8 @@ export default function LandingPage({ onNavigateToAuth, onEnterPortalDirectly, o
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             {creators.map(({ name, role, github, kaggle, instagram }) => (
               <Card key={name} className="flex items-center gap-5 p-6">
-                <div className="grid h-20 w-20 shrink-0 place-items-center rounded-full border border-blue-200 bg-blue-100 text-blue-300">
-                  <User className="h-12 w-12" />
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-100 border border-slate-200 text-slate-500">
+                  <User className="h-7 w-7 stroke-[1.75]" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-[#0f3f88]">{name}</h3>
@@ -318,9 +316,9 @@ export default function LandingPage({ onNavigateToAuth, onEnterPortalDirectly, o
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {benefits.map(({ icon: Icon, title, text }) => (
                 <Card key={title} className="flex gap-4 p-5">
-                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-blue-100 text-[#2563eb]">
-                    <Icon className="h-7 w-7" />
-                  </span>
+                  <div className="shrink-0 mt-0.5 text-sky-600">
+                    <Icon className="h-5 w-5 stroke-[1.75]" />
+                  </div>
                   <div>
                     <h3 className="font-extrabold text-[#0f3f88]">{title}</h3>
                     <p className="mt-1 text-sm leading-5 text-[#37609d]">{text}</p>

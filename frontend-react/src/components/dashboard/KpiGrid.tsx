@@ -1,4 +1,4 @@
-import { Database, ShieldCheck, AlertCircle, Activity } from 'lucide-react';
+import { Database, ShieldCheck, AlertCircle, Target } from 'lucide-react';
 import { KpiCard } from './KpiCard';
 import type { DashboardMetrics } from '../../types/analytics';
 import type { DateRangeOption } from '../../types/dashboard';
@@ -76,7 +76,7 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ metrics, dateRange }) => {
         title="Mean AI Confidence"
         value={`${metrics.averageConfidence}%`}
         subtitle={`${metrics.pendingReviewCount} case(s) queued for clinician review`}
-        icon={Activity}
+        icon={Target}
         iconColor="text-blue-600"
         iconBg="bg-blue-50"
         highlightColor="blue"

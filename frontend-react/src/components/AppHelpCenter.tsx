@@ -194,9 +194,7 @@ export default function AppHelpCenter() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 hover:shadow-md transition-all flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563eb] flex items-center justify-center">
-              <Activity className="w-5 h-5" />
-            </div>
+            <Activity className="w-5 h-5 text-slate-400 stroke-[1.75]" />
             <h3 className="font-sans text-sm font-bold text-[#131b2e]">Scan Acquisition Protocol</h3>
             <p className="font-sans text-xs text-[#434655] leading-relaxed">
               Guidelines for probe frequency (3.5–5.0 MHz curved transducer), acoustic window alignment, and avoiding Doppler color bleed.
@@ -209,9 +207,7 @@ export default function AppHelpCenter() {
 
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 hover:shadow-md transition-all flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Layers className="w-5 h-5" />
-            </div>
+            <Layers className="w-5 h-5 text-slate-400 stroke-[1.75]" />
             <h3 className="font-sans text-sm font-bold text-[#131b2e]">Grad-CAM Heatmap Guide</h3>
             <p className="font-sans text-xs text-[#434655] leading-relaxed">
               Understand focal activation colors, acoustic shadow tracking, and neural attribution for nephrolithiasis vs normal parenchyma.
@@ -224,9 +220,7 @@ export default function AppHelpCenter() {
 
         <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 hover:shadow-md transition-all flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <FileText className="w-5 h-5" />
-            </div>
+            <FileText className="w-5 h-5 text-slate-400 stroke-[1.75]" />
             <h3 className="font-sans text-sm font-bold text-[#131b2e]">Certified PDF Reporting</h3>
             <p className="font-sans text-xs text-[#434655] leading-relaxed">
               Step-by-step workflow for attaching radiologist addendums, generating patient PDF audit reports, and verifying SHA-256 signatures.
@@ -244,7 +238,7 @@ export default function AppHelpCenter() {
         <div className="lg:col-span-7 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#c3c6d7]/40">
             <h2 className="text-base font-bold text-[#131b2e] flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-[#2563eb]" />
+              <HelpCircle className="w-4 h-4 text-slate-400 stroke-[1.75]" />
               Frequently Answered Questions
             </h2>
             
@@ -309,7 +303,7 @@ export default function AppHelpCenter() {
 
           {/* Clinical Tip Box */}
           <div className="bg-[#eff6ff] border border-[#2563eb]/20 rounded-xl p-4 flex items-start gap-3">
-            <Info className="w-5 h-5 text-[#2563eb] shrink-0 mt-0.5" />
+            <Info className="w-4 h-4 text-sky-600 stroke-[1.75] shrink-0 mt-0.5" />
             <div className="space-y-1 text-xs">
               <h4 className="font-bold text-[#131b2e]">Clinician Tip for Shadow Detection</h4>
               <p className="text-[#434655] leading-relaxed">
@@ -325,7 +319,7 @@ export default function AppHelpCenter() {
           <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 shadow-sm space-y-4">
             <div className="space-y-1 pb-2 border-b border-[#e2e8f0]">
               <h3 className="text-sm font-bold text-[#131b2e] flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#2563eb]" />
+                <MessageSquare className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                 Submit Clinical Support Ticket
               </h3>
               <p className="text-xs text-[#737686]">
@@ -415,21 +409,21 @@ export default function AppHelpCenter() {
           {/* Clinical Engineering Hub Info */}
           <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 shadow-sm space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-2 border-b border-slate-100">
-              <ShieldCheck className="w-4 h-4 text-[#2563eb]" />
+              <ShieldCheck className="w-4 h-4 text-slate-400 stroke-[1.75]" />
               Informatics & Research Center
             </h4>
             
             <div className="space-y-2 text-xs text-[#434655]">
               <div className="flex items-center gap-2.5">
-                <MapPin className="w-4 h-4 text-[#2563eb] shrink-0" />
+                <MapPin className="w-4 h-4 text-slate-400 stroke-[1.75] shrink-0" />
                 <span>Tanger, Morocco</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#2563eb] shrink-0" />
+                <Mail className="w-4 h-4 text-slate-400 stroke-[1.75] shrink-0" />
                 <span className="font-mono">support@kidneyvision.ai</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-[#2563eb] shrink-0" />
+                <Clock className="w-4 h-4 text-slate-400 stroke-[1.75] shrink-0" />
                 <span>Clinical Support: 24/7 Priority Emergency Triage</span>
               </div>
             </div>

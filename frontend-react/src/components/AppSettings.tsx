@@ -502,7 +502,7 @@ export default function AppSettings() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#434655] flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-[#2563eb]" />
+                <Layers className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                 Genuine AI Microservice Status
               </h3>
               <button
@@ -521,7 +521,7 @@ export default function AppSettings() {
               <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 shadow-sm space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                    <Server className="w-4 h-4 text-[#2563eb]" />
+                    <Server className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                     AI Flask Microservice
                   </span>
                   <span
@@ -551,7 +551,7 @@ export default function AppSettings() {
               <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 shadow-sm space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-[#2563eb]" />
+                    <Layers className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                     ConvNeXt 4-Class Model
                   </span>
                   <span
@@ -575,7 +575,7 @@ export default function AppSettings() {
               <div className="bg-white border border-[#c3c6d7] rounded-xl p-4 shadow-sm space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                    <Database className="w-4 h-4 text-[#2563eb]" />
+                    <Database className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                     Clinical Database
                   </span>
                   <span
@@ -608,7 +608,7 @@ export default function AppSettings() {
               <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-[#2563eb]" />
+                    <Cpu className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                     AI Review & Triage Threshold
                   </h3>
                   <span className="px-3 py-1 bg-[#eff4fe] text-[#2563eb] font-bold text-xs rounded-full border border-[#2563eb]/20 font-mono">
@@ -652,7 +652,7 @@ export default function AppSettings() {
               {/* Card 2: Clinical Alert Routing */}
               <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 space-y-4 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2 pb-3 border-b border-[#e2e8f0]">
-                  <Activity className="w-4 h-4 text-[#2563eb]" />
+                  <Sliders className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                   Supported Clinical Notifications
                 </h3>
 

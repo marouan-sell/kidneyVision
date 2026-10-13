@@ -189,7 +189,7 @@ export default function GuestAnalysis() {
                           : 'text-[#434655] hover:text-[#131b2e] hover:bg-white/60'
                       }`}
                     >
-                      <Activity className="w-3.5 h-3.5" />
+                      <Layers className="w-3.5 h-3.5 stroke-[1.75]" />
                       Grad-CAM Heatmap
                     </button>
                   )}

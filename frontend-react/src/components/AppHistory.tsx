@@ -359,9 +359,7 @@ export default function AppHistory() {
           </div>
         ) : analyses.length === 0 ? (
           <div className="py-20 text-center space-y-3 px-4">
-            <div className="w-12 h-12 rounded-full bg-[#f2f3ff] mx-auto flex items-center justify-center text-[#2563eb]">
-              <FileText className="w-6 h-6" />
-            </div>
+            <FileText className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-1" />
             <div>
               <h4 className="font-bold text-[#131b2e] text-sm">No analyses yet</h4>
               <p className="text-xs text-[#737686] max-w-sm mx-auto mt-1">
@@ -812,7 +810,7 @@ export default function AppHistory() {
                 <div className="space-y-2 bg-[#faf8ff] p-3 rounded-xl border border-[#c3c6d7]/50">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#131b2e] flex items-center gap-1.5">
-                      <Activity className="w-3.5 h-3.5 text-blue-600" />
+                      <Layers className="w-3.5 h-3.5 text-slate-400 stroke-[1.75]" />
                       4-Class Probability Spectrum
                     </span>
                     <span className="text-[10px] text-slate-500 font-mono">ConvNeXt-Tiny</span>
@@ -901,7 +899,7 @@ export default function AppHistory() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div className="font-sans text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                    <ClipboardCheck className="w-4 h-4 text-[#2563eb]" />
+                    <ClipboardCheck className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                     Radiological Signature Addendum
                   </div>
                   {!isEditingNote ? (

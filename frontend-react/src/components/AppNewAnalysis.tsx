@@ -322,9 +322,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
           <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 shadow-xs space-y-4 hover:border-slate-400 transition-colors">
             <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
               <h3 className="font-sans text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                  <User className="w-3.5 h-3.5" />
-                </div>
+                <User className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                 Patient Registration Parameters
               </h3>
               <span className="text-[10px] text-[#737686] font-medium">Step 1 of 2</span>
@@ -445,9 +443,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
           <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 shadow-xs space-y-4 hover:border-slate-400 transition-colors">
             <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
               <h3 className="font-sans text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                  <Upload className="w-3.5 h-3.5" />
-                </div>
+                <Upload className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                 Renal Scan Upload (CT / Ultrasound)
               </h3>
               <span className="text-[10px] text-[#737686] font-medium">Step 2 of 2</span>
@@ -520,9 +516,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#2563eb] flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">
-                    <ImageIcon className="w-6 h-6" />
-                  </div>
+                  <ImageIcon className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-2 group-hover:text-slate-600 transition-colors" />
                   <div className="font-sans text-xs font-bold text-[#131b2e]">
                     Click or drag & drop renal scan image (CT / Ultrasound)
                   </div>
@@ -611,7 +605,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                         }`}
                         title="Grad-CAM Saliency Overlay"
                       >
-                        <Activity className="w-3 h-3" />
+                        <Layers className="w-3 h-3 stroke-[1.75]" />
                         Grad-CAM
                       </button>
                     )}
@@ -687,7 +681,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                           )}
                           {heatmapViewMode === "gradcam" && (
                             <>
-                              <Activity className="w-3 h-3 text-sky-400" />
+                              <Layers className="w-3 h-3 text-sky-400 stroke-[1.75]" />
                               <span>GRAD-CAM SALIENCY HEATMAP</span>
                             </>
                           )}
@@ -741,9 +735,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   ) : (
                     /* Clean Clinical Empty Viewport Placeholder */
                     <div className="flex flex-col items-center justify-center p-6 text-center space-y-3">
-                      <div className="w-14 h-14 rounded-2xl bg-white border border-[#c3c6d7] shadow-xs flex items-center justify-center text-[#2563eb]">
-                        <ImageIcon className="w-7 h-7" />
-                      </div>
+                      <ImageIcon className="w-8 h-8 text-slate-400 stroke-[1.75] mb-1" />
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-[#131b2e]">Awaiting Ultrasound Scan</p>
                         <p className="text-[11px] text-[#434655] max-w-[220px] leading-relaxed">
@@ -838,9 +830,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                 {/* Idle Initial View */}
                 {!isScanning && !activeAnalysis && (
                   <div className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                      <Activity className="w-6 h-6 text-[#2563eb]" />
-                    </div>
+                    <Layers className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-1" />
                     <div className="space-y-1">
                       <h5 className="font-sans text-xs font-bold text-[#131b2e]">Scan Awaiting Inference</h5>
                       <p className="font-sans text-[11px] text-[#737686] max-w-[220px] leading-relaxed">
@@ -883,9 +873,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                     {/* Stage-1 Gatekeeper Authenticity Card */}
                     <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                          <ShieldCheck className="w-5 h-5" />
-                        </div>
+                        <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 stroke-[1.75]" />
                         <div className="min-w-0">
                           <div className="font-bold text-emerald-950 flex items-center gap-1.5">
                             <span>Stage-1 Gatekeeper AI: PASSED</span>
@@ -967,7 +955,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       {/* Lesion Diameter */}
                       <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                         <div className="text-[10px] text-slate-500 font-semibold uppercase flex items-center gap-1">
-                          <Ruler className="w-3 h-3 text-[#2563eb]" />
+                          <Ruler className="w-3 h-3 text-slate-400 stroke-[1.75]" />
                           Lesion Diameter
                         </div>
                         <div className="font-bold text-slate-900 font-mono text-sm mt-0.5">
@@ -981,7 +969,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       {/* Severity Grade */}
                       <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                         <div className="text-[10px] text-slate-500 font-semibold uppercase flex items-center gap-1">
-                          <Activity className="w-3 h-3 text-purple-600" />
+                          <AlertCircle className="w-3 h-3 text-slate-400 stroke-[1.75]" />
                           Severity Tier
                         </div>
                         <div className="font-bold text-slate-900 text-xs truncate mt-0.5">
@@ -995,7 +983,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       {/* Auto-masking / Preprocessing Telemetry */}
                       <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg col-span-2 sm:col-span-1">
                         <div className="text-[10px] text-slate-500 font-semibold uppercase flex items-center gap-1">
-                          <Layers className="w-3 h-3 text-emerald-600" />
+                          <Layers className="w-3 h-3 text-slate-400 stroke-[1.75]" />
                           Auto-Inpainting
                         </div>
                         <div className="font-bold text-slate-900 text-xs mt-0.5">
