@@ -25,7 +25,9 @@ import {
 } from '../data/mockAnalytics';
 
 import { getAnalyses } from '../services/analysis.service';
+import { getStatistics } from '../services/dashboard.service';
 import { KidneyAnalysis, DiagnosisResult } from '../types/analysis';
+import type { DashboardStats } from '../types';
 
 import type { DateRangeOption } from '../types/dashboard';
 import type { Diagnosis, ScanRecord, ScanStatus } from '../types/scan';
@@ -152,15 +154,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
   // Modal inspection state
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
 
-  // Load real analyses from Laravel API
+  // Live aggregated DB statistics (to support arbitrarily large archives)
+  const [liveStats, setLiveStats] = useState<DashboardStats | null>(null);
+
+  // Load real analyses from Laravel API and global DB statistics
   const loadBackendScans = async () => {
     try {
-      const res = await getAnalyses(1, 100);
-      if (res && Array.isArray(res.data)) {
-        const mapped = res.data.map(mapAnalysisToScanRecord);
+      const [analysesResult, statsResult] = await Promise.allSettled([
+        getAnalyses(1, 100),
+        getStatistics(),
+      ]);
+
+      if (analysesResult.status === 'fulfilled' && analysesResult.value && Array.isArray(analysesResult.value.data)) {
+        const mapped = analysesResult.value.data.map(mapAnalysisToScanRecord);
         setBackendScans(mapped);
       } else {
         setBackendScans([]);
+      }
+
+      if (statsResult.status === 'fulfilled' && statsResult.value) {
+        setLiveStats(statsResult.value);
       }
     } catch {
       // Backend offline or user not logged in; retain real empty state
@@ -184,8 +197,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
 
   // Derived metrics & chart datasets
   const metrics = useMemo(() => {
-    return computeDashboardMetrics(filteredRangeScans);
-  }, [filteredRangeScans]);
+    const computed = computeDashboardMetrics(filteredRangeScans);
+    if (dateRange === 'ALL' && liveStats && liveStats.totalScans > computed.totalScans) {
+      const total = liveStats.totalScans;
+      const normal = liveStats.normalCount;
+      const stones = liveStats.stoneCount;
+      const cysts = liveStats.cystCount;
+      const tumors = liveStats.tumorCount;
+      const pathDetections = stones + cysts + tumors;
+      const normalRate = total > 0 ? Math.round((normal / total) * 100) : 0;
+      const pathRate = total > 0 ? Math.round((pathDetections / total) * 100) : 0;
+      return {
+        ...computed,
+        totalScans: total,
+        normalScans: normal,
+        normalRate,
+        stoneScans: stones,
+        cystScans: cysts,
+        tumorScans: tumors,
+        pathologyDetections: pathDetections,
+        pathologyRate: pathRate,
+        scansDeltaPct: liveStats.monthGrowthPercentage !== null ? liveStats.monthGrowthPercentage : computed.scansDeltaPct,
+      };
+    }
+    return computed;
+  }, [filteredRangeScans, dateRange, liveStats]);
 
   const diagnosticDistribution = useMemo(() => {
     return computeDiagnosticDistribution(filteredRangeScans);

@@ -42,15 +42,20 @@ class TestReporter:
         print("=" * 70)
         return {"total": total, "passed": passed, "failed": failed, "results": self.results}
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 reporter = TestReporter()
 
 def timed_get(url, **kwargs):
+    kwargs.setdefault('verify', False)
     t0 = time.time()
     resp = requests.get(url, timeout=15, **kwargs)
     dt = (time.time() - t0) * 1000
     return resp, dt
 
 def timed_post(url, **kwargs):
+    kwargs.setdefault('verify', False)
     t0 = time.time()
     resp = requests.post(url, timeout=40, **kwargs)
     dt = (time.time() - t0) * 1000

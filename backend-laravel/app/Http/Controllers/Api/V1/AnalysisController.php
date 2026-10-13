@@ -35,6 +35,7 @@ class AnalysisController extends Controller
         try {
             $analysis = $this->analysisService->createAnalysis($dto);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($storedPath);
             $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : Response::HTTP_UNPROCESSABLE_ENTITY;
             return response()->json([
                 'success' => false,
@@ -72,9 +73,13 @@ class AnalysisController extends Controller
     public function index(Request $request): AnalysisCollection
     {
         $perPage = $request->integer('per_page', 15);
+        $search = $request->string('search')->trim()->value();
+        $status = $request->string('status')->trim()->value();
         $analyses = $this->analysisService->getUserAnalyses(
             (int) $request->user()->id,
             $perPage,
+            $search ?: null,
+            $status ?: null,
         );
 
         return new AnalysisCollection($analyses);

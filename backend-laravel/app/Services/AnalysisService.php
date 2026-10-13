@@ -110,9 +110,9 @@ class AnalysisService implements AnalysisServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function getUserAnalyses(int $userId, int $perPage = 15): LengthAwarePaginator
+    public function getUserAnalyses(int $userId, int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator
     {
-        return $this->analysisRepository->findByUser($userId, $perPage);
+        return $this->analysisRepository->findByUser($userId, $perPage, $search, $status);
     }
 
     /**

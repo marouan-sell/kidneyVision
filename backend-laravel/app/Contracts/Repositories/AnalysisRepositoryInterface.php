@@ -16,9 +16,9 @@ interface AnalysisRepositoryInterface
     public function findById(int $id): ?Analysis;
 
     /**
-     * Find all analyses for a specific user (paginated).
+     * Find all analyses for a specific user (paginated, with optional search & filter).
      */
-    public function findByUser(int $userId, int $perPage = 15): LengthAwarePaginator;
+    public function findByUser(int $userId, int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator;
 
     /**
      * Create a new analysis.

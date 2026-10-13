@@ -11,6 +11,7 @@ import {
   ShieldCheck, ArrowUpDown, Sparkles, CircleDot, AlertOctagon
 } from "lucide-react";
 import { getAnalyses, downloadReport, getReportPdfBlobUrl } from "../services";
+import { CLINICAL_SCAN_FALLBACK_SVG } from "../services/client";
 import { KidneyAnalysis, DiagnosisResult } from "../types";
 
 export default function AppReports() {
@@ -327,7 +328,7 @@ export default function AppReports() {
                         alt="Scan thumb" 
                         className="w-12 h-12 rounded-lg object-cover border border-[#c3c6d7] shrink-0 bg-neutral-900"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=400&q=80";
+                          (e.target as HTMLImageElement).src = CLINICAL_SCAN_FALLBACK_SVG;
                         }}
                       />
                     ) : (

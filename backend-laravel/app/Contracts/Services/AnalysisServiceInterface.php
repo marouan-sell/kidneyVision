@@ -22,9 +22,9 @@ interface AnalysisServiceInterface
     public function getAnalysis(int $id, int $userId): Analysis;
 
     /**
-     * Get paginated analyses for a user.
+     * Get paginated analyses for a user (with optional search & filter).
      */
-    public function getUserAnalyses(int $userId, int $perPage = 15): LengthAwarePaginator;
+    public function getUserAnalyses(int $userId, int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator;
 
     /**
      * Delete an analysis (soft delete).

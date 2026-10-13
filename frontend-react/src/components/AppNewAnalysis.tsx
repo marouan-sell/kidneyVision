@@ -650,15 +650,11 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </div>
             </div>
 
-            <div className={`p-5 ${heatmapViewMode === "panel" && activeAnalysis?.visualizationUrl ? "space-y-5" : "grid md:grid-cols-2 gap-5"}`}>
+            <div className="p-5 grid md:grid-cols-2 gap-5">
               
               {/* Scan viewport panel */}
               <div className="space-y-3">
-                <div className={`rounded-xl border relative overflow-hidden flex items-center justify-center group transition-all duration-300 ${
-                  heatmapViewMode === "panel" && activeAnalysis?.visualizationUrl
-                    ? "aspect-[16/9] sm:aspect-[2.36/1] bg-black min-h-[260px]"
-                    : "aspect-square bg-slate-950"
-                } ${
+                <div className={`rounded-xl border relative overflow-hidden flex items-center justify-center group transition-all duration-300 aspect-[4/3] w-full min-h-[280px] max-h-[460px] bg-slate-950 ${
                   uploadedFilePreview
                     ? "border-[#c3c6d7]"
                     : "bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#edf2f9] border-2 border-dashed border-[#c3c6d7]"
@@ -668,18 +664,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                     <>
                       {/* Image Viewer (Dual Panel, Grad-CAM, Cleaned, or Raw) */}
                       <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                        {heatmapViewMode === "gradcam" && (
-                          <img
-                            alt="Underlying Ultrasound Scan"
-                            className="absolute inset-0 w-full h-full object-cover"
-                            src={activeAnalysis?.cleanedScanUrl || uploadedFilePreview || activeAnalysis?.imageUrl}
-                          />
-                        )}
                         <img
                           alt="Ultrasound Diagnostic Target"
-                          className={`w-full h-full select-none transition-all duration-300 relative z-10 ${
-                            heatmapViewMode === "panel" ? "object-contain" : "object-cover"
-                          }`}
+                          className="w-full h-full select-none transition-all duration-300 relative z-10 object-contain"
                           src={
                             heatmapViewMode === "panel" && activeAnalysis?.visualizationUrl
                               ? activeAnalysis.visualizationUrl

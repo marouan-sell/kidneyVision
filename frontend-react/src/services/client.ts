@@ -53,6 +53,10 @@ export const API_URL = resolveApiUrl();
 export const BASE_URL = API_URL ? API_URL.replace(/\/api\/?$/, '') : '';
 
 
+export const CLINICAL_SCAN_FALLBACK_SVG = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%230f172a'%3E%3Crect width='400' height='300' fill='%23090d16'/%3E%3Cpath d='M80 250 C120 120 280 120 320 250 Z' fill='%231e293b' stroke='%23334155' stroke-width='2'/%3E%3Cpath d='M140 220 C160 160 240 160 260 220 Z' fill='%230f172a' stroke='%233b82f6' stroke-width='1.5' stroke-dasharray='4 2'/%3E%3Ccircle cx='200' cy='190' r='14' fill='none' stroke='%2338bdf8' stroke-width='1.5'/%3E%3Ctext x='200' y='275' fill='%2364748b' font-family='monospace' font-size='11' text-anchor='middle'%3EB-MODE ULTRASOUND ACQUISITION%3C/text%3E%3C/svg%3E";
+
+export const CLINICIAN_AVATAR_FALLBACK_SVG = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e2e8f0'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%2394a3b8'/%3E%3Cpath d='M22 84 C24 64 36 58 50 58 C64 58 76 64 78 84 Z' fill='%2364748b'/%3E%3C/svg%3E";
+
 /**
  * Universal Image URL Sanitizer.
  * Guarantees that whatever backend/mock/file path format is supplied:
@@ -64,7 +68,7 @@ export const BASE_URL = API_URL ? API_URL.replace(/\/api\/?$/, '') : '';
  */
 export function sanitizeImageUrl(rawUrl?: string | null): string {
   if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
-    return "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80";
+    return CLINICAL_SCAN_FALLBACK_SVG;
   }
 
   const trimmed = rawUrl.trim();
