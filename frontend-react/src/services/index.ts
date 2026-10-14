@@ -9,3 +9,4 @@ export * from './report.service';
 export * from './settings.service';
 export * from './health.service';
 export * from './dashboard.service';
+export * from './patient.service';

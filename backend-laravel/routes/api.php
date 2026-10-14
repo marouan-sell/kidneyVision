@@ -87,12 +87,44 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/revoke-sessions', [ProfileController::class, 'revokeSessions'])
         ->name('profile.revoke-sessions');
 
-    // Patients
+    // Patients & Follow-up Center
     Route::get('/patients', [\App\Http\Controllers\Api\V1\PatientController::class, 'index'])
         ->name('patients.index');
 
+    Route::get('/patients/list', [\App\Http\Controllers\Api\V1\PatientController::class, 'listAll'])
+        ->name('patients.list');
+
+    Route::get('/patients/stats', [\App\Http\Controllers\Api\V1\PatientController::class, 'stats'])
+        ->name('patients.stats');
+
     Route::get('/patients/next-id', [\App\Http\Controllers\Api\V1\PatientController::class, 'nextId'])
         ->name('patients.nextId');
+
+    Route::post('/patients', [\App\Http\Controllers\Api\V1\PatientController::class, 'store'])
+        ->name('patients.store');
+
+    Route::get('/patients/{patient_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'show'])
+        ->name('patients.show');
+
+    Route::put('/patients/{patient_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'update'])
+        ->name('patients.update');
+
+    Route::post('/patients/{patient_id}/follow-ups', [\App\Http\Controllers\Api\V1\PatientController::class, 'scheduleFollowUp'])
+        ->name('patients.followUps.store');
+
+    Route::put('/patients/{patient_id}/follow-ups/{follow_up_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'updateFollowUp'])
+        ->where('follow_up_id', '[0-9]+')
+        ->name('patients.followUps.update');
+
+    Route::delete('/patients/{patient_id}/follow-ups/{follow_up_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'deleteFollowUp'])
+        ->where('follow_up_id', '[0-9]+')
+        ->name('patients.followUps.destroy');
+
+    Route::get('/patients/{patient_id}/compare', [\App\Http\Controllers\Api\V1\PatientController::class, 'compareScans'])
+        ->name('patients.compare');
+
+    Route::get('/patients/{patient_id}/history/pdf', [\App\Http\Controllers\Api\V1\PatientController::class, 'downloadHistoryPdf'])
+        ->name('patients.history.pdf');
 
     // System Settings
     Route::get('/settings', [SettingsController::class, 'index'])

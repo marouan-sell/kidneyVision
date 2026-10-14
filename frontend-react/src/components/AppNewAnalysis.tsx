@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { 
   Upload, Loader2, Play, CircleDot, ShieldCheck, 
   Eye, FileText, CheckCircle2, ChevronRight, Download, 
@@ -22,11 +23,15 @@ interface AppNewAnalysisProps {
 }
 
 export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
-  // Input fields state — starts completely empty for clinical doctor entry
-  const [patientId, setPatientId] = useState<string>("");
-  const [patientName, setPatientName] = useState<string>("");
-  const [patientAge, setPatientAge] = useState<string>("");
-  const [patientGender, setPatientGender] = useState<"Male" | "Female" | "Other">("Male");
+  const locationState = useLocation().state as { patient?: any } | undefined;
+
+  // Input fields state — starts completely empty for clinical doctor entry, or pre-filled from Patient Profile
+  const [patientId, setPatientId] = useState<string>(locationState?.patient?.patient_id || "");
+  const [patientName, setPatientName] = useState<string>(locationState?.patient?.name || "");
+  const [patientAge, setPatientAge] = useState<string>(locationState?.patient?.age ? String(locationState.patient.age) : "");
+  const [patientGender, setPatientGender] = useState<"Male" | "Female" | "Other">(
+    locationState?.patient?.gender === "Female" ? "Female" : (locationState?.patient?.gender === "Other" ? "Other" : "Male")
+  );
   const [location, setLocation] = useState<"Left Kidney" | "Right Kidney" | "Unspecified">("Left Kidney");
   const [clinicianNotes, setClinicianNotes] = useState<string>("");
   const [existingPatients, setExistingPatients] = useState<any[]>([]);
@@ -39,13 +44,30 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
       .catch(() => {});
   }, []);
 
-  const handlePatientNameChange = (name: string) => {
-    setPatientName(name);
-    const matched = existingPatients.find(
-      (p) => p.name?.toLowerCase().trim() === name.toLowerCase().trim()
-    );
+  useEffect(() => {
+    if (locationState?.patient) {
+      const p = locationState.patient;
+      if (p.patient_id) setPatientId(p.patient_id);
+      if (p.name) setPatientName(p.name);
+      if (p.age) setPatientAge(String(p.age));
+      if (p.gender) {
+        const g = p.gender.toLowerCase();
+        if (g === "female") setPatientGender("Female");
+        else if (g === "male") setPatientGender("Male");
+        else setPatientGender("Other");
+      }
+    }
+  }, [locationState]);
+
+  const handlePatientSelect = (selectedId: string) => {
+    if (!selectedId) {
+      setPatientId("");
+      return;
+    }
+    const matched = existingPatients.find((p) => p.patient_id === selectedId);
     if (matched) {
-      if (matched.patient_id) setPatientId(matched.patient_id);
+      setPatientId(matched.patient_id);
+      setPatientName(matched.name || "");
       if (matched.age) setPatientAge(matched.age.toString());
       if (matched.gender) {
         const g = matched.gender.toLowerCase();
@@ -54,6 +76,10 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
         else setPatientGender("Other");
       }
     }
+  };
+
+  const handlePatientNameChange = (name: string) => {
+    setPatientName(name);
   };
   
   // Custom file upload state
@@ -108,7 +134,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
     // If patient name is currently blank, suggest an automated placeholder from filename
     if (!patientName.trim()) {
       const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-      // Only set if not a generic generic hash
+      // Only set if not a generic hash
       if (cleanName.length > 2 && !cleanName.match(/^[0-9a-f]{8,}$/i)) {
         setPatientName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
       }
@@ -327,6 +353,53 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </h3>
               <span className="text-[10px] text-[#737686] font-medium">Step 1 of 2</span>
             </div>
+
+            {/* Pre-linked Patient Banner if navigated from profile */}
+            {patientId && (
+              <div className="bg-[#eaedff]/60 border border-[#2563eb]/30 rounded-lg p-2.5 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#2563eb] shrink-0" />
+                  <span className="text-[#131b2e]">
+                    Linked to Patient: <strong className="font-mono text-[#2563eb]">{patientId}</strong>
+                    {patientName ? ` (${patientName})` : ''}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPatientId("");
+                    setPatientName("");
+                    setPatientAge("");
+                  }}
+                  className="text-[11px] text-[#2563eb] hover:underline cursor-pointer font-medium"
+                >
+                  Create As New Patient Instead
+                </button>
+              </div>
+            )}
+
+            {/* Quick Existing Patient Dropdown */}
+            {existingPatients.length > 0 && (
+              <div className="space-y-1">
+                <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center justify-between" htmlFor="existing-patient-select">
+                  <span>Select Existing Registered Patient</span>
+                  <span className="text-[10px] text-[#737686] font-normal">Reuses patient ID across analyses</span>
+                </label>
+                <select
+                  id="existing-patient-select"
+                  className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white cursor-pointer"
+                  value={patientId}
+                  onChange={(e) => handlePatientSelect(e.target.value)}
+                >
+                  <option value="">-- New Patient (Will generate guaranteed unique Patient ID) --</option>
+                  {existingPatients.map((p) => (
+                    <option key={p.id || p.patient_id} value={p.patient_id}>
+                      [{p.patient_id}] {p.name} {p.age ? `· ${p.age} yrs` : ''} {p.gender ? `· ${p.gender}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Patient ID and Name */}
             <div className="grid grid-cols-3 gap-3">

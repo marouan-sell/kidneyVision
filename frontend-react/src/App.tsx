@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   History, Settings, LogOut, FileText, 
-  LayoutDashboard, HelpCircle, Menu, X, PlusCircle
+  LayoutDashboard, HelpCircle, Menu, X, PlusCircle, Users
 } from "lucide-react";
 
 import LandingPage from "./components/LandingPage";
@@ -16,6 +16,7 @@ import ErrorBoundary from "./components/common/ErrorBoundary";
 
 const AppDashboard = React.lazy(() => import("./components/AppDashboard"));
 const AppNewAnalysis = React.lazy(() => import("./components/AppNewAnalysis"));
+const AppPatients = React.lazy(() => import("./components/AppPatients"));
 const AppHistory = React.lazy(() => import("./components/AppHistory"));
 const AppReports = React.lazy(() => import("./components/AppReports"));
 const AppSettings = React.lazy(() => import("./components/AppSettings"));
@@ -42,6 +43,7 @@ function PortalLayout() {
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes("/analysis")) return "analysis";
+    if (path.includes("/patients")) return "patients";
     if (path.includes("/history")) return "history";
     if (path.includes("/reports")) return "reports";
     if (path.includes("/settings")) return "settings";
@@ -123,6 +125,11 @@ function PortalLayout() {
             }`}>
               <PlusCircle className="w-4.5 h-4.5 shrink-0" /> New Analysis
             </Link>
+            <Link to="/patients" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
+                activeTab === "patients" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"
+            }`}>
+              <Users className="w-4.5 h-4.5 shrink-0" /> Patients
+            </Link>
             <Link to="/history" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
                 activeTab === "history" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"
             }`}>
@@ -200,6 +207,7 @@ function PortalLayout() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<AppDashboard />} />
               <Route path="/analysis" element={<AppNewAnalysis onAddSuccess={() => navigate("/history")} />} />
+              <Route path="/patients" element={<AppPatients />} />
               <Route path="/history" element={<AppHistory />} />
               <Route path="/reports" element={<AppReports />} />
               <Route path="/settings" element={<AppSettings />} />

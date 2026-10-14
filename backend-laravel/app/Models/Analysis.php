@@ -79,6 +79,14 @@ class Analysis extends Model
     }
 
     /**
+     * Get the patient record associated with this analysis.
+     */
+    public function patient(): BelongsTo
+    {
+        return $this->belongsTo(Patient::class, 'patient_id', 'patient_id');
+    }
+
+    /**
      * Scope: Only completed analyses.
      */
     public function scopeCompleted($query)

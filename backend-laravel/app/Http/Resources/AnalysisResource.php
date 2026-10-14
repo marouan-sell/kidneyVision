@@ -18,7 +18,7 @@ class AnalysisResource extends JsonResource
             'id' => $this->id,
             'image_url' => $this->image_url,
             'original_filename' => $this->original_filename,
-            'patient_id' => $this->patient_id ?? ('PT-' . str_pad((string) $this->id, 4, '0', STR_PAD_LEFT)),
+            'patient_id' => $this->patient_id,
             'patient_name' => $this->patient_name ?? $this->original_filename,
             'patient_age' => $this->patient_age,
             'patient_gender' => $this->patient_gender,

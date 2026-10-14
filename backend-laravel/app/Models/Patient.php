@@ -19,13 +19,18 @@ class Patient extends Model
         'name',
         'age',
         'gender',
+        'phone',
+        'email',
         'notes',
+        'flagged_for_review',
+        'review_reason',
     ];
 
     protected function casts(): array
     {
         return [
             'age' => 'integer',
+            'flagged_for_review' => 'boolean',
         ];
     }
 
@@ -36,6 +41,11 @@ class Patient extends Model
 
     public function analyses(): HasMany
     {
-        return $this->hasMany(Analysis::class, 'patient_id', 'patient_id');
+        return $this->hasMany(Analysis::class, 'patient_id', 'patient_id')->orderBy('created_at', 'desc');
+    }
+
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(PatientFollowUp::class, 'patient_id', 'patient_id')->orderBy('follow_up_date', 'asc');
     }
 }
