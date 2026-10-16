@@ -30,6 +30,7 @@
 set -euo pipefail
 
 BACKUP_DIR="${BACKUP_DIR:-/home/azureuser/backups}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 TEMP_DIR=""
 
