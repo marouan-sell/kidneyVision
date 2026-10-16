@@ -151,7 +151,14 @@ if [[ "$DB_DRIVER" == "pgsql" || "$DB_DRIVER" == "postgres" ]]; then
     unset PGPASSWORD
 else
     # SQLite Backup
-    SQLITE_PATH="${DB_DATABASE:-/home/azureuser/kidneyVision/backend-laravel/database/database.sqlite}"
+    SQLITE_PATH="${DB_DATABASE:-}"
+    if [[ -z "$SQLITE_PATH" || ! -f "$SQLITE_PATH" ]]; then
+        if [[ -f "$SCRIPT_DIR/../backend-laravel/database/database.sqlite" ]]; then
+            SQLITE_PATH="$SCRIPT_DIR/../backend-laravel/database/database.sqlite"
+        elif [[ -f "/home/azureuser/kidneyVision/backend-laravel/database/database.sqlite" ]]; then
+            SQLITE_PATH="/home/azureuser/kidneyVision/backend-laravel/database/database.sqlite"
+        fi
+    fi
     if [[ -f "$SQLITE_PATH" ]]; then
         if command -v sqlite3 &>/dev/null; then
             sqlite3 "$SQLITE_PATH" ".backup '$TEMP_DIR/database.sqlite'"
@@ -163,7 +170,14 @@ fi
 
 # 5. Archive Medical Scans & Sensitive Storage
 echo "[*] Packaging private medical scans and credentials..."
-STORAGE_DIR="${STORAGE_PATH:-/home/azureuser/kidneyVision/backend-laravel/storage}"
+STORAGE_DIR="${STORAGE_PATH:-}"
+if [[ -z "$STORAGE_DIR" || ! -d "$STORAGE_DIR" ]]; then
+    if [[ -d "$SCRIPT_DIR/../backend-laravel/storage" ]]; then
+        STORAGE_DIR="$SCRIPT_DIR/../backend-laravel/storage"
+    else
+        STORAGE_DIR="/home/azureuser/kidneyVision/backend-laravel/storage"
+    fi
+fi
 mkdir -p "$TEMP_DIR/storage"
 
 if [[ -d "$STORAGE_DIR/app/private" ]]; then
@@ -177,7 +191,7 @@ fi
 
 # 6. Bundle Unencrypted Package
 PLAIN_ARCHIVE="$TEMP_DIR/bundle.tar.gz"
-tar -czf "$PLAIN_ARCHIVE" -C "$TEMP_DIR" database.* storage
+(cd "$TEMP_DIR" && tar -czf "$PLAIN_ARCHIVE" --exclude="bundle.tar.gz" .)
 
 # 7. Encrypt Archive with OpenSSL AES-256-CBC
 ENCRYPTED_FILE="$BACKUP_DIR/kv_secure_${TIMESTAMP}.tar.gz.enc"
