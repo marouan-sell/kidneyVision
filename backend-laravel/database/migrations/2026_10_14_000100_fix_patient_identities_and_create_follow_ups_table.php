@@ -62,134 +62,105 @@ return new class extends Migration
 
         // 5. Historical Data Reconciliation (Executed only when existing clinical data is present)
         if (DB::table('users')->exists()) {
+            $upsertPatient = function (string $patientId, int $userId, array $attributes) {
+                if (DB::table('users')->where('id', $userId)->exists()) {
+                    DB::table('patients')->updateOrInsert(
+                        ['patient_id' => $patientId],
+                        array_merge(['user_id' => $userId], $attributes)
+                    );
+                }
+            };
+
             // Collision 1: Analysis #22 (User 9, 'Screenshot 2026 10 07 190514') had PT-0001 (owned by User 1).
             DB::table('analyses')->where('id', 22)->update(['patient_id' => 'PT-100011']);
-            DB::table('patients')->updateOrInsert(
-                ['patient_id' => 'PT-100011'],
-                [
-                    'user_id' => 9,
-
+            $upsertPatient('PT-100011', 9, [
                 'name' => 'Screenshot 2026 10 07 190514',
                 'age' => 25,
                 'gender' => 'Male',
                 'flagged_for_review' => false,
                 'created_at' => '2026-10-07 19:08:23',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        // Collision 2: Analysis #42 (User 19, 'sara') had PT-6503 (owned by User 16, 'ali').
-        DB::table('analyses')->where('id', 42)->update(['patient_id' => 'PT-100012']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100012'],
-            [
-                'user_id' => 19,
+            // Collision 2: Analysis #42 (User 19, 'sara') had PT-6503 (owned by User 16, 'ali').
+            DB::table('analyses')->where('id', 42)->update(['patient_id' => 'PT-100012']);
+            $upsertPatient('PT-100012', 19, [
                 'name' => 'sara',
                 'age' => 28,
                 'gender' => 'Male',
                 'flagged_for_review' => false,
                 'created_at' => '2026-10-12 17:36:16',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        // Analysis #38 (User 15, 'Ct stone train 0001') had empty patient_id
-        DB::table('analyses')->where('id', 38)->update(['patient_id' => 'PT-100013']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100013'],
-            [
-                'user_id' => 15,
+            // Analysis #38 (User 15, 'Ct stone train 0001') had empty patient_id
+            DB::table('analyses')->where('id', 38)->update(['patient_id' => 'PT-100013']);
+            $upsertPatient('PT-100013', 15, [
                 'name' => 'Ct stone train 0001',
                 'age' => null,
                 'gender' => 'Male',
                 'flagged_for_review' => false,
                 'created_at' => '2026-10-12 13:56:20',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        // Analyses #8, 9, 10, 31, 32, 33 (Legacy unassigned test uploads with empty name/ID)
-        // Assign dedicated IDs and flag for clinical review rather than silently merging.
-        DB::table('analyses')->where('id', 8)->update(['patient_id' => 'PT-100014', 'patient_name' => 'Legacy Study #8']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100014'],
-            [
-                'user_id' => 5,
+            // Analyses #8, 9, 10, 31, 32, 33 (Legacy unassigned test uploads with empty name/ID)
+            DB::table('analyses')->where('id', 8)->update(['patient_id' => 'PT-100014', 'patient_name' => 'Legacy Study #8']);
+            $upsertPatient('PT-100014', 5, [
                 'name' => 'Legacy Study #8',
                 'flagged_for_review' => true,
                 'review_reason' => 'Legacy test scan with missing demographic details',
                 'created_at' => '2026-10-07 16:45:53',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        DB::table('analyses')->whereIn('id', [9, 10])->update(['patient_id' => 'PT-100015', 'patient_name' => 'Legacy Study User 6']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100015'],
-            [
-                'user_id' => 6,
+            DB::table('analyses')->whereIn('id', [9, 10])->update(['patient_id' => 'PT-100015', 'patient_name' => 'Legacy Study User 6']);
+            $upsertPatient('PT-100015', 6, [
                 'name' => 'Legacy Study User 6',
                 'flagged_for_review' => true,
                 'review_reason' => 'Legacy test scans with missing demographic details',
                 'created_at' => '2026-10-07 16:46:23',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        DB::table('analyses')->whereIn('id', [31, 32])->update(['patient_id' => 'PT-100016', 'patient_name' => 'Legacy Study User 12']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100016'],
-            [
-                'user_id' => 12,
+            DB::table('analyses')->whereIn('id', [31, 32])->update(['patient_id' => 'PT-100016', 'patient_name' => 'Legacy Study User 12']);
+            $upsertPatient('PT-100016', 12, [
                 'name' => 'Legacy Study User 12',
                 'flagged_for_review' => true,
                 'review_reason' => 'Legacy test scans with missing demographic details',
                 'created_at' => '2026-10-10 20:30:41',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        DB::table('analyses')->where('id', 33)->update(['patient_id' => 'PT-100017', 'patient_name' => 'Legacy Study #33']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100017'],
-            [
-                'user_id' => 13,
+            DB::table('analyses')->where('id', 33)->update(['patient_id' => 'PT-100017', 'patient_name' => 'Legacy Study #33']);
+            $upsertPatient('PT-100017', 13, [
                 'name' => 'Legacy Study #33',
                 'flagged_for_review' => true,
                 'review_reason' => 'Legacy test scan with missing demographic details',
                 'created_at' => '2026-10-10 21:59:24',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        // Missing patient records for existing valid IDs in analyses
-        // Analysis #17 (User 2, PT-100000)
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100000'],
-            [
-                'user_id' => 2,
+            // Missing patient records for existing valid IDs in analyses
+            // Analysis #17 (User 2, PT-100000)
+            $upsertPatient('PT-100000', 2, [
                 'name' => 'Jane Test 6acd7b92dbc47',
                 'age' => 20,
                 'gender' => 'Male',
                 'flagged_for_review' => false,
                 'created_at' => '2026-10-07 16:58:23',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        // Analysis #7 (User 3, PT-100001)
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100001'],
-            [
-                'user_id' => 3,
+            // Analysis #7 (User 3, PT-100001)
+            $upsertPatient('PT-100001', 3, [
                 'name' => 'Jane Test 6acd7bf32d570',
                 'age' => null,
                 'gender' => 'Male',
                 'flagged_for_review' => false,
                 'created_at' => '2026-10-07 16:25:30',
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
         // Sync patient_id_seq to the highest number (PostgreSQL only)
         if (DB::getDriverName() === 'pgsql') {
