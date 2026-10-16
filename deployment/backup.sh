@@ -33,10 +33,14 @@ BACKUP_DIR="${BACKUP_DIR:-/home/azureuser/backups}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 TEMP_DIR=""
+PLAIN_ARCHIVE=""
 
 cleanup() {
     if [[ -n "${TEMP_DIR:-}" && -d "$TEMP_DIR" ]]; then
         rm -rf "$TEMP_DIR"
+    fi
+    if [[ -n "${PLAIN_ARCHIVE:-}" && -f "$PLAIN_ARCHIVE" ]]; then
+        rm -f "$PLAIN_ARCHIVE"
     fi
 }
 trap cleanup EXIT INT TERM
@@ -191,8 +195,8 @@ if [[ -d "$STORAGE_DIR/app/public/avatars" ]]; then
 fi
 
 # 6. Bundle Unencrypted Package
-PLAIN_ARCHIVE="$TEMP_DIR/bundle.tar.gz"
-(cd "$TEMP_DIR" && tar -czf "$PLAIN_ARCHIVE" --exclude="bundle.tar.gz" .)
+PLAIN_ARCHIVE="/tmp/kv_bundle_${TIMESTAMP}.tar.gz"
+(cd "$TEMP_DIR" && tar -czf "$PLAIN_ARCHIVE" .)
 
 # 7. Encrypt Archive with OpenSSL AES-256-CBC
 ENCRYPTED_FILE="$BACKUP_DIR/kv_secure_${TIMESTAMP}.tar.gz.enc"
