@@ -21,6 +21,7 @@ class AIIntegrationService implements AIIntegrationServiceInterface
     private int $retryTimes;
     private int $retrySleep;
     private bool $mockEnabled;
+    private string $internalSecret;
 
     public function __construct()
     {
@@ -31,6 +32,7 @@ class AIIntegrationService implements AIIntegrationServiceInterface
         $this->retryTimes = config('ai.retry_times');
         $this->retrySleep = config('ai.retry_sleep');
         $this->mockEnabled = config('ai.mock_enabled');
+        $this->internalSecret = (string) config('ai.internal_secret');
     }
 
     /**
@@ -45,9 +47,16 @@ class AIIntegrationService implements AIIntegrationServiceInterface
         }
 
         try {
-            $fullPath = Storage::disk('public')->path($imagePath);
+            if (Storage::disk('private')->exists($imagePath)) {
+                $fullPath = Storage::disk('private')->path($imagePath);
+            } else {
+                $fullPath = Storage::disk('public')->path($imagePath);
+            }
 
             $response = Http::timeout($this->timeout)
+                ->withHeaders([
+                    'X-Internal-Token' => $this->internalSecret,
+                ])
                 ->retry($this->retryTimes, $this->retrySleep, function ($exception) {
                     if ($exception instanceof \Illuminate\Http\Client\RequestException && $exception->response) {
                         return $exception->response->serverError();

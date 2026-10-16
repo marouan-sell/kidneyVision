@@ -40,6 +40,17 @@ class PatientController extends Controller
             $filters
         );
 
+        $this->auditLogService->log(
+            action: 'patient_directory_viewed',
+            resourceType: 'Patient',
+            metadata: [
+                'has_search' => !empty($filters['search']),
+                'total_records' => $paginator->total(),
+            ],
+            user: $request->user(),
+            request: $request
+        );
+
         return response()->json([
             'success' => true,
             'data' => $paginator->items(),
@@ -143,6 +154,18 @@ class PatientController extends Controller
      */
     public function show(Request $request, string $patientId): JsonResponse
     {
+        $patient = Patient::where('patient_id', $patientId)->first();
+
+        if (!$patient) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient record not found.',
+                'error_code' => 'PATIENT_NOT_FOUND',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->authorize('view', $patient);
+
         $profile = $this->patientService->getPatientProfile((int) $request->user()->id, $patientId);
 
         if (!$profile) {
@@ -152,6 +175,17 @@ class PatientController extends Controller
                 'error_code' => 'PATIENT_NOT_FOUND',
             ], Response::HTTP_NOT_FOUND);
         }
+
+        $this->auditLogService->log(
+            action: 'patient_viewed',
+            resourceType: 'Patient',
+            resourceId: (string) $patient->id,
+            metadata: [
+                'patient_id' => $patient->patient_id,
+            ],
+            user: $request->user(),
+            request: $request
+        );
 
         return response()->json([
             'success' => true,
@@ -352,9 +386,7 @@ class PatientController extends Controller
      */
     public function downloadHistoryPdf(Request $request, string $patientId)
     {
-        $userId = (int) $request->user()->id;
-        $patient = Patient::where('user_id', $userId)
-            ->where('patient_id', $patientId)
+        $patient = Patient::where('patient_id', $patientId)
             ->with(['analyses' => function ($q) {
                 $q->orderBy('created_at', 'desc')->with('report');
             }, 'followUps' => function ($q) {
@@ -370,14 +402,19 @@ class PatientController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
+        $this->authorize('view', $patient);
+
         $user = $request->user();
         $signatureBase64 = null;
-        if ($user && $user->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature_path)) {
-            $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($user->signature_path);
-            $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
-        } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists('signatures/sig_16_1791889016.png')) {
-            $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get('signatures/sig_16_1791889016.png');
-            $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+        if ($user && $user->signature_configured && $user->signature_path) {
+            $sigPath = $user->signature_path;
+            if (\Illuminate\Support\Facades\Storage::disk('private')->exists($sigPath)) {
+                $sigBytes = \Illuminate\Support\Facades\Storage::disk('private')->get($sigPath);
+                $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+            } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($sigPath)) {
+                $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($sigPath);
+                $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+            }
         }
 
         $analyses = $patient->analyses;

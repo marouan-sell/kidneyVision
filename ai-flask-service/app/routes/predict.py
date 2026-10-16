@@ -1,9 +1,10 @@
 """
 Prediction route blueprint supporting dual-stage Gatekeeper & 4-Class Diagnostic.
 """
+import hmac
 import logging
 from flask import Blueprint, request, jsonify
-from app.config import ALLOWED_EXTENSIONS, MAX_FILE_SIZE
+from app.config import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, INTERNAL_SERVICE_TOKEN
 from app.preprocessing.validator import allowed_file
 from app.services.inference_service import process_and_predict
 
@@ -18,7 +19,16 @@ def predict():
     if request.method == 'OPTIONS':
         return "", 200
 
-    logger.info("Received prediction request.")
+    # Service-to-service authentication using constant-time comparison
+    incoming_token = request.headers.get("X-Internal-Token", "")
+    if not incoming_token or not hmac.compare_digest(incoming_token, INTERNAL_SERVICE_TOKEN):
+        logger.warning("Unauthorized inference attempt: missing or invalid X-Internal-Token.")
+        return jsonify({
+            "error": "Unauthorized: Missing or invalid internal service token.",
+            "success": False
+        }), 401
+
+    logger.info("Received authenticated prediction request.")
 
     # Find file in common field names
     file_obj = None

@@ -29,9 +29,10 @@ const TermsPage = React.lazy(() => import("./components/TermsPage"));
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { CLINICIAN_AVATAR_FALLBACK_SVG } from "./services/client";
+import InactivityLockOverlay from "./components/auth/InactivityLockOverlay";
 
 function PortalLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, isSessionLocked, unlockSession } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ function PortalLayout() {
   const handleLogout = () => {
     logout();
   };
+
 
   const getActiveTab = () => {
     const path = location.pathname;
@@ -55,8 +57,10 @@ function PortalLayout() {
 
   return (
     <div id="portal-full-layout" className="min-h-screen bg-[#faf8ff] text-[#131b2e] flex flex-col lg:flex-row font-sans selection:bg-[#b4c5ff]">
+      {isSessionLocked && <InactivityLockOverlay onUnlocked={unlockSession} />}
       
       {/* Mobile Bar Controls */}
+
       <header className="lg:hidden bg-white border-b border-[#c3c6d7] px-4 py-3 flex justify-between items-center sticky top-0 z-40">
         <Link 
           to="/dashboard" 

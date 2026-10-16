@@ -4,13 +4,36 @@ import { User } from "../types";
 /**
  * 1. POST /auth/login
  */
-export async function loginUser(email: string, password: string): Promise<{ token: string; user: User }> {
+export interface LoginResult {
+  token?: string;
+  user?: User;
+  mfa_required?: boolean;
+  email?: string;
+}
+
+export async function loginUser(
+  email: string, 
+  password: string, 
+  mfaCode?: string, 
+  recoveryCode?: string
+): Promise<LoginResult> {
   try {
     await fetchCsrfCookie();
-    const response = await apiClient.post('/auth/login', { email, password });
+    const payload: Record<string, string> = { email, password };
+    if (mfaCode) payload.mfa_code = mfaCode;
+    if (recoveryCode) payload.recovery_code = recoveryCode;
+
+    const response = await apiClient.post('/auth/login', payload);
 
     if (!response.data.success) {
       throw new Error(response.data.message || "Invalid credentials.");
+    }
+
+    if (response.data.data?.mfa_required) {
+      return {
+        mfa_required: true,
+        email: response.data.data.email,
+      };
     }
 
     return {
@@ -21,6 +44,7 @@ export async function loginUser(email: string, password: string): Promise<{ toke
     throw new Error(e.response?.data?.message || "Invalid email or password.");
   }
 }
+
 
 /**
  * 2. POST /auth/register

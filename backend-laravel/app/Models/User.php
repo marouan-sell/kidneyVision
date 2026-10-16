@@ -28,6 +28,10 @@ class User extends Authenticatable
         'signature_path',
         'signature_updated_at',
         'is_admin',
+        'mfa_enabled',
+        'mfa_secret',
+        'mfa_recovery_codes',
+        'mfa_confirmed_at',
     ];
 
     /**
@@ -36,6 +40,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'mfa_secret',
+        'mfa_recovery_codes',
     ];
 
     /**
@@ -49,8 +55,13 @@ class User extends Authenticatable
             'signature_configured' => 'boolean',
             'signature_updated_at' => 'datetime',
             'is_admin' => 'boolean',
+            'mfa_enabled' => 'boolean',
+            'mfa_secret' => 'encrypted',
+            'mfa_recovery_codes' => 'encrypted:array',
+            'mfa_confirmed_at' => 'datetime',
         ];
     }
+
 
     /**
      * Get full URL to user avatar image.
@@ -79,13 +90,7 @@ class User extends Authenticatable
             return null;
         }
 
-        $path = str_replace('\\', '/', $this->signature_path);
-        $path = ltrim($path, '/');
-        if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8);
-        }
-
-        return asset('storage/' . $path);
+        return url('/api/profile/signature');
     }
 
     /**

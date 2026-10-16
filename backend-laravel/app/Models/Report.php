@@ -32,6 +32,8 @@ class Report extends Model
         return [
             'recommendations' => 'array',
             'metadata' => 'array',
+            'summary' => 'encrypted',
+            'clinician_notes' => 'encrypted',
         ];
     }
 

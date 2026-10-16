@@ -51,6 +51,8 @@ class Analysis extends Model
             'processed_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'flagged_at' => 'datetime',
+            'patient_name' => 'encrypted',
+            'clinician_notes' => 'encrypted',
         ];
     }
 
@@ -127,7 +129,7 @@ class Analysis extends Model
     }
 
     /**
-     * Get the full image URL.
+     * Get the authenticated streaming image URL.
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -135,12 +137,6 @@ class Analysis extends Model
             return null;
         }
 
-        $path = str_replace('\\', '/', $this->image_path);
-        $path = ltrim($path, '/');
-        if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8);
-        }
-
-        return asset('storage/' . $path);
+        return url("/api/analyses/{$this->id}/image");
     }
 }

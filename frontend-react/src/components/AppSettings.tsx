@@ -38,8 +38,11 @@ import {
 import { AppSettings as IAppSettings, SystemHealth, UserProfile } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
+import MfaSettingsSection from "./settings/MfaSettingsSection";
 
 type SettingsSection = "clinical" | "profile";
+
+
 
 export default function AppSettings() {
   const { user: authUser, updateUser } = useAuth();
@@ -1084,8 +1087,12 @@ export default function AppSettings() {
               </div>
             )}
           </div>
+
+          {/* Clinician Account Security & Two-Factor Authentication */}
+          <MfaSettingsSection />
         </div>
       )}
+
     </div>
   );
 }

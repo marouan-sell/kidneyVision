@@ -180,13 +180,20 @@ class PatientService
                 $q->orderBy('follow_up_date', 'asc');
             }]);
 
-        // Search by Patient ID or Patient Name
+        // Search by Patient ID or Blind Indexed Contact Data
         if ($search !== '') {
-            $term = '%' . strtolower($search) . '%';
-            $query->where(function ($q) use ($term) {
-                $q->whereRaw('LOWER(name) LIKE ?', [$term])
-                  ->orWhereRaw('LOWER(patient_id) LIKE ?', [$term])
-                  ->orWhereRaw('LOWER(phone) LIKE ?', [$term]);
+            $cleanTerm = strtolower($search);
+            $phoneBidx = Patient::generateBlindIndex($search, 'phone');
+            $emailBidx = Patient::generateBlindIndex($search, 'email');
+
+            $query->where(function ($q) use ($cleanTerm, $phoneBidx, $emailBidx) {
+                $q->whereRaw('LOWER(patient_id) LIKE ?', ["%{$cleanTerm}%"]);
+                if ($phoneBidx) {
+                    $q->orWhere('phone_bidx', $phoneBidx);
+                }
+                if ($emailBidx) {
+                    $q->orWhere('email_bidx', $emailBidx);
+                }
             });
         }
 

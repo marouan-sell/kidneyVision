@@ -19,6 +19,7 @@ class AnalysisController extends Controller
     public function __construct(
         private readonly AnalysisServiceInterface $analysisService,
         private readonly \App\Services\AuditLogService $auditLogService,
+        private readonly \App\Services\ImageSanitizerService $imageSanitizerService,
     ) {}
 
     /**
@@ -28,13 +29,18 @@ class AnalysisController extends Controller
      */
     public function predict(StoreAnalysisRequest $request): JsonResponse
     {
-        $storedPath = $request->file('image')->store('analyses', 'public');
+        $storedPath = $this->imageSanitizerService->sanitizeAndStore(
+            $request->file('image'),
+            'analyses',
+            'private'
+        );
 
         $dto = AnalysisDTO::fromRequest($request, $storedPath);
 
         try {
             $analysis = $this->analysisService->createAnalysis($dto);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Storage::disk('private')->delete($storedPath);
             \Illuminate\Support\Facades\Storage::disk('public')->delete($storedPath);
             $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : Response::HTTP_UNPROCESSABLE_ENTITY;
             return response()->json([
@@ -169,32 +175,49 @@ class AnalysisController extends Controller
     }
 
     /**
-     * Securely stream the analysis ultrasound scan image for authorized owner only.
+     * Securely stream the analysis ultrasound scan image for authorized clinician only.
      *
      * GET /api/analyses/{id}/image
      */
-    public function image(Request $request, int $id)
-    {
-        $analysis = $this->analysisService->getAnalysis(
-            $id,
-            (int) $request->user()->id,
-        );
+     public function image(Request $request, int $id)
+     {
+         $analysis = $this->analysisService->getAnalysis(
+             $id,
+             (int) $request->user()->id,
+         );
 
-        $cleanPath = str_replace(['..', '\\'], ['', '/'], (string) $analysis->image_path);
-        $path = storage_path('app/public/' . $cleanPath);
+         $cleanPath = str_replace(['..', '\\'], ['', '/'], (string) $analysis->image_path);
+         $cleanPath = ltrim($cleanPath, '/');
 
-        if (!file_exists($path) || is_dir($path)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Image file not found on server.',
-            ], 404);
-        }
+         // Check private storage first, fallback to legacy public path
+         $path = storage_path('app/private/' . $cleanPath);
+         if (!file_exists($path) || is_dir($path)) {
+             $path = storage_path('app/public/' . $cleanPath);
+         }
 
-        return response()->file($path, [
-            'Cache-Control' => 'private, max-age=3600',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    }
+         if (!file_exists($path) || is_dir($path)) {
+             return response()->json([
+                 'success' => false,
+                 'message' => 'Image file not found on server.',
+             ], 404);
+         }
+
+         $this->auditLogService->log(
+             action: 'scan_viewed',
+             resourceType: 'Analysis',
+             resourceId: (string) $analysis->id,
+             metadata: [
+                 'patient_id' => $analysis->patient_id,
+             ],
+             user: $request->user(),
+             request: $request
+         );
+
+         return response()->file($path, [
+             'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+             'X-Content-Type-Options' => 'nosniff',
+         ]);
+     }
 
     /**
      * Sign and confirm an analysis by clinician.

@@ -24,12 +24,22 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 2FA state
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
     if (!email || !password) {
       setError("Enter your clinical email and password to continue.");
+      return;
+    }
+
+    if (mfaRequired && !mfaCode.trim()) {
+      setError(isRecoveryMode ? "Please enter a backup recovery code." : "Please enter the 6-digit authentication code.");
       return;
     }
 
@@ -41,9 +51,25 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const response = await loginUser(email.trim(), password);
-      login(response.token, response.user);
-      navigate("/dashboard");
+      const response = await loginUser(
+        email.trim(),
+        password,
+        !isRecoveryMode && mfaCode ? mfaCode.trim() : undefined,
+        isRecoveryMode && mfaCode ? mfaCode.trim() : undefined
+      );
+
+      if (response.mfa_required) {
+        setMfaRequired(true);
+        setIsLoading(false);
+        return;
+      }
+
+      if (response.token && response.user) {
+        login(response.token, response.user);
+        navigate("/dashboard");
+      } else {
+        throw new Error("Unable to complete authentication.");
+      }
     } catch (err) {
       const message =
         err instanceof Error
@@ -54,6 +80,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen w-full bg-white font-sans text-[#131b2e] flex">
@@ -130,10 +157,12 @@ export default function LoginPage() {
 
           <div className="mb-8">
             <h1 className="text-[28px] font-bold tracking-tight text-[#131b2e]">
-              Welcome Back
+              {mfaRequired ? "Two-Factor Verification" : "Welcome Back"}
             </h1>
             <p className="mt-2 text-[15px] text-[#737686]">
-              Sign in to access your clinical diagnostics portal.
+              {mfaRequired 
+                ? "Enter your 6-digit authenticator code to verify your identity."
+                : "Sign in to access your clinical diagnostics portal."}
             </p>
           </div>
 
@@ -145,92 +174,144 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-1.5 block text-[13px] font-medium text-[#434655]"
-              >
-                Clinical email
-              </label>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8b8ea0]" />
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="dr.smith@hospital.org"
-                  className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8faff] py-3 pl-11 pr-4 text-[15px] text-[#131b2e] placeholder:text-[#9a9dab] transition focus:border-[#2563eb] focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            </div>
+            {mfaRequired ? (
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="mfa-code"
+                    className="mb-1.5 block text-[13px] font-medium text-[#434655]"
+                  >
+                    {isRecoveryMode ? "One-Time Recovery Code" : "6-Digit Authenticator Code"}
+                  </label>
+                  <input
+                    id="mfa-code"
+                    type="text"
+                    maxLength={isRecoveryMode ? 20 : 6}
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(isRecoveryMode ? e.target.value.toUpperCase() : e.target.value.replace(/\D/g, ""))}
+                    placeholder={isRecoveryMode ? "ABCD-1234-EF" : "123456"}
+                    autoFocus
+                    required
+                    className="w-full text-center tracking-widest font-mono text-xl rounded-xl border border-[#c3c6d7] bg-[#f8faff] py-3.5 px-4 text-[#131b2e] placeholder:text-[#9a9dab] transition focus:border-[#2563eb] focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  />
+                </div>
 
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-[13px] font-medium text-[#434655]"
-                >
-                  Password
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRecoveryMode(!isRecoveryMode);
+                      setMfaCode("");
+                      setError(null);
+                    }}
+                    className="text-xs font-medium text-[#2563eb] hover:underline cursor-pointer"
+                  >
+                    {isRecoveryMode ? "Use authenticator app code instead" : "Use backup recovery code instead"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaRequired(false);
+                      setMfaCode("");
+                      setError(null);
+                    }}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-800 cursor-pointer"
+                  >
+                    Back to login
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-1.5 block text-[13px] font-medium text-[#434655]"
+                  >
+                    Clinical email
+                  </label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8b8ea0]" />
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="dr.smith@hospital.org"
+                      className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8faff] py-3 pl-11 pr-4 text-[15px] text-[#131b2e] placeholder:text-[#9a9dab] transition focus:border-[#2563eb] focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <label
+                      htmlFor="password"
+                      className="block text-[13px] font-medium text-[#434655]"
+                    >
+                      Password
+                    </label>
+                    <Link
+                      to="/forgot-password"
+                      className="text-[13px] font-medium text-[#2563eb] hover:text-[#0d5fc5]"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8b8ea0]" />
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8faff] py-3 pl-11 pr-11 text-[15px] text-[#131b2e] placeholder:text-[#9a9dab] transition focus:border-[#2563eb] focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8b8ea0] hover:text-[#434655]"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-[18px] w-[18px]" />
+                      ) : (
+                        <Eye className="h-[18px] w-[18px]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <label className="flex cursor-pointer items-center gap-2.5 text-[13px] text-[#434655]">
+                  <input
+                    type="checkbox"
+                    checked={rememberDevice}
+                    onChange={(e) => setRememberDevice(e.target.checked)}
+                    className="h-4 w-4 rounded border-[#c3c6d7] text-[#2563eb] focus:ring-2 focus:ring-blue-100"
+                  />
+                  Remember this workstation
                 </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-[13px] font-medium text-[#2563eb] hover:text-[#0d5fc5]"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8b8ea0]" />
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8faff] py-3 pl-11 pr-11 text-[15px] text-[#131b2e] placeholder:text-[#9a9dab] transition focus:border-[#2563eb] focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8b8ea0] hover:text-[#434655]"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-[18px] w-[18px]" />
-                  ) : (
-                    <Eye className="h-[18px] w-[18px]" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <label className="flex cursor-pointer items-center gap-2.5 text-[13px] text-[#434655]">
-              <input
-                type="checkbox"
-                checked={rememberDevice}
-                onChange={(e) => setRememberDevice(e.target.checked)}
-                className="h-4 w-4 rounded border-[#c3c6d7] text-[#2563eb] focus:ring-2 focus:ring-blue-100"
-              />
-              Remember this workstation
-            </label>
+              </>
+            )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_32px_rgba(23,69,133,0.18)] transition hover:bg-[#0d5fc5] disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_32px_rgba(23,69,133,0.18)] transition hover:bg-[#0d5fc5] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="h-[18px] w-[18px] animate-spin" />
-                  Authenticating...
+                  {mfaRequired ? "Verifying Code..." : "Authenticating..."}
                 </>
               ) : (
                 <>
                   <Lock className="h-[18px] w-[18px]" />
-                  Sign In
+                  {mfaRequired ? "Verify & Enter Portal" : "Sign In"}
                   <ArrowRight className="h-[18px] w-[18px]" />
                 </>
               )}
@@ -246,6 +327,7 @@ export default function LoginPage() {
               Request Access
             </Link>
           </p>
+
         </div>
       </div>
     </div>

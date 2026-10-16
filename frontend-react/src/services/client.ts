@@ -81,6 +81,15 @@ export function sanitizeImageUrl(rawUrl?: string | null): string {
   // Normalize backslashes (Windows filesystem paths)
   let normalized = trimmed.replace(/\\/g, '/');
 
+  // If it's an authenticated API endpoint (e.g. /api/analyses/{id}/image or /api/profile/signature)
+  if (normalized.includes('/api/')) {
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+      return normalized;
+    }
+    const cleanApiPath = normalized.replace(/^\/+/, '');
+    return `${BASE_URL}/${cleanApiPath}`;
+  }
+
   // If it's already an absolute URL
   if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
     try {

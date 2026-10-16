@@ -41,3 +41,10 @@ AI_TASK_DESCRIPTION = "Multi-Pathology Kidney Diagnostic & Gate System"
 MAX_COLOR_SATURATION = 45.0   # Grayscale consistency threshold
 MIN_DARK_PIXEL_RATIO = 0.10   # Medical scan dark background ratio
 DARK_PIXEL_THRESHOLD = 60     # Background pixel threshold (0-255)
+
+# Service-to-Service Authentication
+INTERNAL_SERVICE_TOKEN = os.environ.get(
+    "AI_INTERNAL_SECRET",
+    os.environ.get("AI_SERVICE_TOKEN", "kv_internal_secure_dev_token_2026")
+)
+

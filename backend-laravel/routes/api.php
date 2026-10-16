@@ -75,6 +75,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])
         ->name('profile.avatar.delete');
 
+    Route::get('/profile/signature', [ProfileController::class, 'streamSignature'])
+        ->name('profile.signature.stream');
+
     Route::post('/profile/signature', [ProfileController::class, 'updateSignature'])
         ->name('profile.signature.update');
 
@@ -86,6 +89,23 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/profile/revoke-sessions', [ProfileController::class, 'revokeSessions'])
         ->name('profile.revoke-sessions');
+
+    // Optional Two-Factor Authentication (MFA)
+    Route::get('/profile/mfa', [\App\Http\Controllers\Api\V1\MfaController::class, 'status'])
+        ->name('profile.mfa.status');
+
+    Route::post('/profile/mfa/setup', [\App\Http\Controllers\Api\V1\MfaController::class, 'setup'])
+        ->middleware('throttle:5,1')
+        ->name('profile.mfa.setup');
+
+    Route::post('/profile/mfa/confirm', [\App\Http\Controllers\Api\V1\MfaController::class, 'confirm'])
+        ->middleware('throttle:5,1')
+        ->name('profile.mfa.confirm');
+
+    Route::post('/profile/mfa/disable', [\App\Http\Controllers\Api\V1\MfaController::class, 'disable'])
+        ->middleware('throttle:5,1')
+        ->name('profile.mfa.disable');
+
 
     // Patients & Follow-up Center
     Route::get('/patients', [\App\Http\Controllers\Api\V1\PatientController::class, 'index'])

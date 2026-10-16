@@ -19,5 +19,6 @@ return [
     'retry_times' => (int) env('AI_RETRY_TIMES', 3),
     'retry_sleep' => (int) env('AI_RETRY_SLEEP', 1000),
     'mock_enabled' => (bool) env('AI_MOCK_ENABLED', true),
+    'internal_secret' => env('AI_INTERNAL_SECRET', 'kv_internal_secure_dev_token_2026'),
 
 ];

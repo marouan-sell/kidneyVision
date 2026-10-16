@@ -39,6 +39,7 @@ class ProfileController extends Controller
                 'signature_url' => $user->signature_url,
                 'signature_updated_at' => $user->signature_updated_at?->toISOString(),
                 'is_admin' => (bool) ($user->is_admin ?? false),
+                'mfa_enabled' => (bool) ($user->mfa_enabled ?? false),
                 'created_at' => $user->created_at?->toISOString(),
             ],
         ]);
@@ -84,8 +85,10 @@ class ProfileController extends Controller
                 'signature_url' => $user->signature_url,
                 'signature_updated_at' => $user->signature_updated_at?->toISOString(),
                 'is_admin' => (bool) ($user->is_admin ?? false),
+                'mfa_enabled' => (bool) ($user->mfa_enabled ?? false),
             ],
         ]);
+
     }
 
     /**
@@ -211,13 +214,18 @@ class ProfileController extends Controller
             }
 
             // Delete old signature if present
-            if ($user->signature_path && Storage::disk('public')->exists($user->signature_path)) {
-                Storage::disk('public')->delete($user->signature_path);
+            if ($user->signature_path) {
+                if (Storage::disk('private')->exists($user->signature_path)) {
+                    Storage::disk('private')->delete($user->signature_path);
+                }
+                if (Storage::disk('public')->exists($user->signature_path)) {
+                    Storage::disk('public')->delete($user->signature_path);
+                }
             }
 
             $filename = 'sig_' . $user->id . '_' . time() . '.png';
             $path = 'signatures/' . $filename;
-            Storage::disk('public')->put($path, $binaryData);
+            Storage::disk('private')->put($path, $binaryData);
 
             $user->update([
                 'signature_configured' => true,
@@ -232,12 +240,17 @@ class ProfileController extends Controller
             ]);
 
             $file = $request->file('signature');
-            if ($user->signature_path && Storage::disk('public')->exists($user->signature_path)) {
-                Storage::disk('public')->delete($user->signature_path);
+            if ($user->signature_path) {
+                if (Storage::disk('private')->exists($user->signature_path)) {
+                    Storage::disk('private')->delete($user->signature_path);
+                }
+                if (Storage::disk('public')->exists($user->signature_path)) {
+                    Storage::disk('public')->delete($user->signature_path);
+                }
             }
 
             $filename = 'sig_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('signatures', $filename, 'public');
+            $path = $file->storeAs('signatures', $filename, 'private');
 
             $user->update([
                 'signature_configured' => true,
@@ -271,6 +284,44 @@ class ProfileController extends Controller
     }
 
     /**
+     * Securely stream authenticated clinician signature image.
+     *
+     * GET /api/profile/signature
+     */
+    public function streamSignature(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->signature_configured || !$user->signature_path) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Signature not configured.',
+            ], 404);
+        }
+
+        $cleanPath = str_replace(['..', '\\'], ['', '/'], (string) $user->signature_path);
+        $cleanPath = ltrim($cleanPath, '/');
+
+        // Check private storage first, fallback to legacy public path
+        $path = storage_path('app/private/' . $cleanPath);
+        if (!file_exists($path) || is_dir($path)) {
+            $path = storage_path('app/public/' . $cleanPath);
+        }
+
+        if (!file_exists($path) || is_dir($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Signature file not found on server.',
+            ], 404);
+        }
+
+        return response()->file($path, [
+            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    /**
      * Remove configured radiologist signature.
      * DELETE /api/profile/signature
      */
@@ -278,8 +329,13 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($user->signature_path && Storage::disk('public')->exists($user->signature_path)) {
-            Storage::disk('public')->delete($user->signature_path);
+        if ($user->signature_path) {
+            if (Storage::disk('private')->exists($user->signature_path)) {
+                Storage::disk('private')->delete($user->signature_path);
+            }
+            if (Storage::disk('public')->exists($user->signature_path)) {
+                Storage::disk('public')->delete($user->signature_path);
+            }
         }
 
         $user->update([

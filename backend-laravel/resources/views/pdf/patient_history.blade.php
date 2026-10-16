@@ -296,11 +296,13 @@
                 All algorithmic classifications represent deep convolutional neural network triage assessments and are retained
                 for clinical audit and comparative monitoring.
             </td>
-            <td style="width: 40%; text-align: right; vertical-align: bottom;">
                 @if(!empty($signatureBase64))
                     <img src="{{ $signatureBase64 }}" style="max-height: 42px; margin-bottom: 3px;" alt="Signature"><br>
+                @else
+                    <div style="display: inline-block; border: 1px dashed #cbd5e1; padding: 4px 8px; border-radius: 4px; font-size: 7pt; color: #94a3b8; margin-bottom: 4px; font-weight: bold;">
+                        [ PENDING CLINICIAN ATTESTATION / UNSIGNED DRAFT ]
+                    </div><br>
                 @endif
-                <div style="font-size: 8pt; font-weight: bold; color: #0f172a;">{{ $user->name ?? 'Attending Clinician' }}</div>
                 <div style="font-size: 7pt; color: #64748b;">{{ $user->specialty ?? 'Department of Urology / Nephrology' }}</div>
             </td>
         </tr>

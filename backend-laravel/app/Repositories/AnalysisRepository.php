@@ -89,6 +89,7 @@ class AnalysisRepository implements AnalysisRepositoryInterface
     public function delete(Analysis $analysis): bool
     {
         if (!empty($analysis->image_path)) {
+            \Illuminate\Support\Facades\Storage::disk('private')->delete($analysis->image_path);
             \Illuminate\Support\Facades\Storage::disk('public')->delete($analysis->image_path);
         }
         return (bool) $analysis->delete();

@@ -55,16 +55,20 @@ return new class extends Migration
         }
 
         // 4. Concurrency-Safe Sequence for Patient IDs in PostgreSQL
-        DB::statement('CREATE SEQUENCE IF NOT EXISTS patient_id_seq START WITH 100020');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('CREATE SEQUENCE IF NOT EXISTS patient_id_seq START WITH 100020');
+        }
 
-        // 5. Historical Data Reconciliation
 
-        // Collision 1: Analysis #22 (User 9, 'Screenshot 2026 10 07 190514') had PT-0001 (owned by User 1).
-        DB::table('analyses')->where('id', 22)->update(['patient_id' => 'PT-100011']);
-        DB::table('patients')->updateOrInsert(
-            ['patient_id' => 'PT-100011'],
-            [
-                'user_id' => 9,
+        // 5. Historical Data Reconciliation (Executed only when existing clinical data is present)
+        if (DB::table('users')->exists()) {
+            // Collision 1: Analysis #22 (User 9, 'Screenshot 2026 10 07 190514') had PT-0001 (owned by User 1).
+            DB::table('analyses')->where('id', 22)->update(['patient_id' => 'PT-100011']);
+            DB::table('patients')->updateOrInsert(
+                ['patient_id' => 'PT-100011'],
+                [
+                    'user_id' => 9,
+
                 'name' => 'Screenshot 2026 10 07 190514',
                 'age' => 25,
                 'gender' => 'Male',
@@ -187,8 +191,11 @@ return new class extends Migration
             ]
         );
 
-        // Sync patient_id_seq to the highest number
-        DB::statement("SELECT setval('patient_id_seq', (SELECT GREATEST(100020, COALESCE(MAX(CAST(SUBSTRING(patient_id FROM 4) AS INTEGER)), 100020)) FROM patients WHERE patient_id LIKE 'PT-%'))");
+        // Sync patient_id_seq to the highest number (PostgreSQL only)
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("SELECT setval('patient_id_seq', (SELECT GREATEST(100020, COALESCE(MAX(CAST(SUBSTRING(patient_id FROM 4) AS INTEGER)), 100020)) FROM patients WHERE patient_id LIKE 'PT-%'))");
+        }
+        }
     }
 
     /**
@@ -197,7 +204,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('patient_follow_ups');
-        DB::statement('DROP SEQUENCE IF EXISTS patient_id_seq');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('DROP SEQUENCE IF EXISTS patient_id_seq');
+        }
+
 
         if (Schema::hasTable('patients_backup_20261014')) {
             DB::table('patients')->truncate();

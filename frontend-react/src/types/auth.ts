@@ -12,8 +12,10 @@ export interface User {
   avatar_url?: string | null;
   signature_configured?: boolean;
   signature_url?: string | null;
+  mfa_enabled?: boolean;
   token?: string;
 }
+
 
 export interface APIConfig {
   apiUrl: string;

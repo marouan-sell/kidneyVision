@@ -24,7 +24,9 @@ class UserResource extends JsonResource
             'avatar_url' => $this->avatar_url,
             'signature_configured' => (bool) ($this->signature_configured ?? false),
             'signature_url' => $this->signature_url,
+            'mfa_enabled' => (bool) ($this->mfa_enabled ?? false),
             'created_at' => $this->created_at->toISOString(),
+
         ];
     }
 }
