@@ -81,12 +81,10 @@ export const DemographicsChart: React.FC<DemographicsChartProps> = ({ cohorts })
     <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700">
-            <Users2 className="w-4 h-4" />
-          </span>
+          <Users2 className="w-4 h-4 text-slate-400 stroke-[1.75]" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">Patient Demographic Cohorts</h3>
-            <p className="text-xs text-slate-500">Synthetic age cohort distribution across all 4 diagnostic classes</p>
+            <p className="text-xs text-slate-500">Age cohort distribution across diagnostic classes</p>
           </div>
         </div>
       </div>

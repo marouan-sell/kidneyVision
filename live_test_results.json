@@ -1,0 +1,203 @@
+{
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "results": [
+    {
+      "category": "SPA Pages",
+      "name": "Landing Page (/)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 235.0
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Login Page (/login)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 222.63
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Registration Page (/register)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 212.9
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Guest Analysis Page (/guest)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 228.51
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Forgot Password Page (/forgot-password)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 190.02
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Privacy Policy Page (/privacy)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 194.3
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Terms of Service Page (/terms)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 216.91
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Portal Dashboard (Client-side fallback) (/dashboard)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 201.9
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Portal Analysis (Client-side fallback) (/analysis)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 195.01
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Portal History (Client-side fallback) (/history)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 221.09
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Portal Reports (Client-side fallback) (/reports)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 194.09
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Portal Settings (Client-side fallback) (/settings)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 218.32
+    },
+    {
+      "category": "SPA Pages",
+      "name": "Portal Help (Client-side fallback) (/help)",
+      "passed": true,
+      "details": "HTTP 200, content-type=text/html",
+      "duration_ms": 194.24
+    },
+    {
+      "category": "Assets",
+      "name": "Bundle asset /assets/index-BYUqExqv.js",
+      "passed": true,
+      "details": "HTTP 200, size=349020 bytes",
+      "duration_ms": 536.37
+    },
+    {
+      "category": "Assets",
+      "name": "Bundle asset /assets/index-BsrFtA1v.css",
+      "passed": true,
+      "details": "HTTP 200, size=92903 bytes",
+      "duration_ms": 331.17
+    },
+    {
+      "category": "API Health",
+      "name": "Backend /api/health",
+      "passed": true,
+      "details": "Response: {\"status\":\"ok\"}",
+      "duration_ms": 216.75
+    },
+    {
+      "category": "API Health",
+      "name": "System Comprehensive Health",
+      "passed": true,
+      "details": "DB: True, AI: True, services=['laravel_api', 'database', 'ai_service']",
+      "duration_ms": 502.51
+    },
+    {
+      "category": "AI Health",
+      "name": "Flask /ai/health",
+      "passed": true,
+      "details": "Models: {'gate_active': True, 'gatekeeper_model': 'MobileNetV3-Small (Kidney Gate)', 'master_model': 'ConvNeXt-Tiny (Master 4-Class SOTA)'}",
+      "duration_ms": 209.48
+    },
+    {
+      "category": "Auth",
+      "name": "User Registration (/api/auth/register)",
+      "passed": true,
+      "details": "HTTP 201, email=clinician_test_63a6a727@kidneyvision.internal",
+      "duration_ms": 1927.38
+    },
+    {
+      "category": "Auth",
+      "name": "User Login (/api/auth/login)",
+      "passed": true,
+      "details": "HTTP 200, token acquired=True",
+      "duration_ms": 1634.48
+    },
+    {
+      "category": "Portal API",
+      "name": "Get Profile (/api/auth/me)",
+      "passed": true,
+      "details": "HTTP 200",
+      "duration_ms": 804.83
+    },
+    {
+      "category": "Portal API",
+      "name": "List Analyses (/api/analyses)",
+      "passed": true,
+      "details": "HTTP 200, initial count=0",
+      "duration_ms": 868.95
+    },
+    {
+      "category": "Portal API",
+      "name": "Get Settings (/api/settings)",
+      "passed": true,
+      "details": "HTTP 200",
+      "duration_ms": 883.36
+    },
+    {
+      "category": "Portal API",
+      "name": "Audit Logs (/api/audit-logs)",
+      "passed": true,
+      "details": "HTTP 200",
+      "duration_ms": 1051.83
+    },
+    {
+      "category": "Clinical Inference",
+      "name": "Legitimate Scan Prediction (/api/predict)",
+      "passed": true,
+      "details": "HTTP 201, Analysis ID=50, pred=None",
+      "duration_ms": 3279.29
+    },
+    {
+      "category": "Clinical Inference",
+      "name": "Fetch Analysis Detail (#50)",
+      "passed": true,
+      "details": "HTTP 200",
+      "duration_ms": 1060.01
+    },
+    {
+      "category": "Clinical Safety",
+      "name": "Gatekeeper Screening Rejection",
+      "passed": true,
+      "details": "HTTP 422, gatekeeper caught invalid image properly: True",
+      "duration_ms": 1781.24
+    },
+    {
+      "category": "Auth",
+      "name": "User Logout (/api/auth/logout)",
+      "passed": true,
+      "details": "HTTP 200",
+      "duration_ms": 904.52
+    }
+  ]
+}

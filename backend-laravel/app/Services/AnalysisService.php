@@ -21,6 +21,7 @@ class AnalysisService implements AnalysisServiceInterface
     public function __construct(
         private readonly AnalysisRepositoryInterface $analysisRepository,
         private readonly AIIntegrationServiceInterface $aiService,
+        private readonly PatientService $patientService,
     ) {}
 
     /**
@@ -28,15 +29,25 @@ class AnalysisService implements AnalysisServiceInterface
      */
     public function createAnalysis(AnalysisDTO $dto): Analysis
     {
+        // Resolve existing patient or create genuinely new patient with an automatically generated unique Patient ID
+        $patient = $this->patientService->findOrCreatePatient(
+            userId: $dto->userId,
+            patientId: $dto->patientId,
+            patientName: $dto->patientName,
+            patientAge: $dto->patientAge,
+            patientGender: $dto->patientGender,
+            notes: $dto->clinicianNotes
+        );
+
         // 1. Create analysis record with processing status (committed for clinical audit)
         $analysis = $this->analysisRepository->create([
             'user_id' => $dto->userId,
             'image_path' => $dto->imagePath,
             'original_filename' => $dto->originalFilename,
-            'patient_id' => $dto->patientId,
-            'patient_name' => $dto->patientName,
-            'patient_age' => $dto->patientAge,
-            'patient_gender' => $dto->patientGender,
+            'patient_id' => $patient->patient_id,
+            'patient_name' => $patient->name,
+            'patient_age' => $patient->age ?? $dto->patientAge,
+            'patient_gender' => $patient->gender ?? $dto->patientGender,
             'anatomical_location' => $dto->anatomicalLocation,
             'clinician_notes' => $dto->clinicianNotes,
             'status' => AnalysisStatus::PROCESSING,
@@ -99,9 +110,9 @@ class AnalysisService implements AnalysisServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function getUserAnalyses(int $userId, int $perPage = 15): LengthAwarePaginator
+    public function getUserAnalyses(int $userId, int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator
     {
-        return $this->analysisRepository->findByUser($userId, $perPage);
+        return $this->analysisRepository->findByUser($userId, $perPage, $search, $status);
     }
 
     /**
@@ -121,17 +132,29 @@ class AnalysisService implements AnalysisServiceInterface
         $analysis = $this->getAnalysis($id, $userId);
 
         $updateFields = [];
-        if (array_key_exists('patientId', $data)) {
-            $updateFields['patient_id'] = !empty(trim((string) $data['patientId'])) ? trim((string) $data['patientId']) : null;
-        }
-        if (array_key_exists('patientName', $data)) {
-            $updateFields['patient_name'] = !empty(trim((string) $data['patientName'])) ? trim((string) $data['patientName']) : null;
-        }
-        if (array_key_exists('patientAge', $data)) {
-            $updateFields['patient_age'] = $data['patientAge'] !== null ? (int) $data['patientAge'] : null;
-        }
-        if (array_key_exists('patientGender', $data)) {
-            $updateFields['patient_gender'] = $data['patientGender'];
+        if (array_key_exists('patientId', $data) || array_key_exists('patientName', $data)) {
+            $patient = $this->patientService->findOrCreatePatient(
+                userId: $userId,
+                patientId: array_key_exists('patientId', $data) ? $data['patientId'] : $analysis->patient_id,
+                patientName: array_key_exists('patientName', $data) ? $data['patientName'] : $analysis->patient_name,
+                patientAge: array_key_exists('patientAge', $data) ? ($data['patientAge'] !== null ? (int) $data['patientAge'] : null) : $analysis->patient_age,
+                patientGender: array_key_exists('patientGender', $data) ? $data['patientGender'] : $analysis->patient_gender,
+            );
+            $updateFields['patient_id'] = $patient->patient_id;
+            $updateFields['patient_name'] = $patient->name;
+            if (array_key_exists('patientAge', $data)) {
+                $updateFields['patient_age'] = $patient->age;
+            }
+            if (array_key_exists('patientGender', $data)) {
+                $updateFields['patient_gender'] = $patient->gender;
+            }
+        } else {
+            if (array_key_exists('patientAge', $data)) {
+                $updateFields['patient_age'] = $data['patientAge'] !== null ? (int) $data['patientAge'] : null;
+            }
+            if (array_key_exists('patientGender', $data)) {
+                $updateFields['patient_gender'] = $data['patientGender'];
+            }
         }
         if (array_key_exists('location', $data)) {
             $updateFields['anatomical_location'] = $data['location'];

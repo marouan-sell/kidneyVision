@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
 import type { DateRangeOption } from '../../types/dashboard';
-import {
-  RefreshCw,
-  Plus,
-} from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface DashboardHeaderProps {
   dateRange: DateRangeOption;
   onDateRangeChange: (range: DateRangeOption) => void;
   onRefresh: () => void;
   pendingCount?: number;
-  onNewScanClick: () => void;
+  onNewScanClick?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   dateRange,
   onDateRangeChange,
   onRefresh,
-  onNewScanClick,
 }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -42,7 +38,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </p>
         </div>
 
-        {/* Controls: Date range, refresh, CTA */}
+        {/* Controls: Date range selector and refresh */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {/* Date Range Selector Pills */}
           <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-medium text-slate-600">
@@ -51,7 +47,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 key={opt}
                 type="button"
                 onClick={() => onDateRangeChange(opt)}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   dateRange === opt
                     ? 'bg-white text-slate-900 font-semibold shadow-xs'
                     : 'hover:text-slate-900'
@@ -74,19 +70,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               className={`w-4 h-4 text-slate-500 ${isRefreshing ? 'animate-spin text-sky-600' : ''}`}
             />
           </button>
-
-          {/* Primary Action Button */}
-          <button
-            type="button"
-            onClick={onNewScanClick}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Ultrasound Scan</span>
-            <span className="sm:hidden">New Scan</span>
-          </button>
         </div>
       </div>
     </header>
   );
 };
+
+export default DashboardHeader;

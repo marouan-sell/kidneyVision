@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
-  Activity, ShieldCheck, History, Settings, LogOut, FileText, 
-  LayoutDashboard, User, HelpCircle, Eye, Menu, X, PlusCircle, BrainCircuit
+  History, Settings, LogOut, FileText, 
+  LayoutDashboard, HelpCircle, Menu, X, PlusCircle, Users
 } from "lucide-react";
 
 import LandingPage from "./components/LandingPage";
@@ -16,6 +16,7 @@ import ErrorBoundary from "./components/common/ErrorBoundary";
 
 const AppDashboard = React.lazy(() => import("./components/AppDashboard"));
 const AppNewAnalysis = React.lazy(() => import("./components/AppNewAnalysis"));
+const AppPatients = React.lazy(() => import("./components/AppPatients"));
 const AppHistory = React.lazy(() => import("./components/AppHistory"));
 const AppReports = React.lazy(() => import("./components/AppReports"));
 const AppSettings = React.lazy(() => import("./components/AppSettings"));
@@ -27,9 +28,11 @@ const PrivacyPage = React.lazy(() => import("./components/PrivacyPage"));
 const TermsPage = React.lazy(() => import("./components/TermsPage"));
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { CLINICIAN_AVATAR_FALLBACK_SVG } from "./services/client";
+import InactivityLockOverlay from "./components/auth/InactivityLockOverlay";
 
 function PortalLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, isSessionLocked, unlockSession } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -38,9 +41,11 @@ function PortalLayout() {
     logout();
   };
 
+
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes("/analysis")) return "analysis";
+    if (path.includes("/patients")) return "patients";
     if (path.includes("/history")) return "history";
     if (path.includes("/reports")) return "reports";
     if (path.includes("/settings")) return "settings";
@@ -52,14 +57,25 @@ function PortalLayout() {
 
   return (
     <div id="portal-full-layout" className="min-h-screen bg-[#faf8ff] text-[#131b2e] flex flex-col lg:flex-row font-sans selection:bg-[#b4c5ff]">
+      {isSessionLocked && <InactivityLockOverlay onUnlocked={unlockSession} />}
       
       {/* Mobile Bar Controls */}
+
       <header className="lg:hidden bg-white border-b border-[#c3c6d7] px-4 py-3 flex justify-between items-center sticky top-0 z-40">
-        <div className="flex items-center">
-          <span className="font-sans font-bold text-base text-[#131b2e] tracking-tight">
-            KidneyVision <span className="text-[#2563eb]">AI</span>
-          </span>
-        </div>
+        <Link 
+          to="/dashboard" 
+          className="flex items-center gap-2 group cursor-pointer"
+          aria-label="KidneyVision AI — Clinical Portal Dashboard"
+        >
+          <div className="flex flex-col text-left">
+            <span className="font-sans font-bold text-base text-[#131b2e] tracking-tight group-hover:text-[#2563eb] transition-colors leading-none">
+              KidneyVision <span className="text-[#2563eb]">AI</span>
+            </span>
+            <span className="font-sans text-[9px] text-[#737686] uppercase tracking-wider font-bold mt-0.5 group-hover:text-[#2563eb]/80 transition-colors">
+              Clinical Portal
+            </span>
+          </div>
+        </Link>
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="p-1 text-[#434655] hover:text-[#131b2e]"
@@ -75,14 +91,20 @@ function PortalLayout() {
         }`}
       >
         <div className="space-y-6">
-          <div className="px-2 py-3 mb-2 text-left">
-            <h1 className="font-sans text-xl font-extrabold text-[#111827] tracking-tight leading-none">
-              KidneyVision <span className="text-[#2563eb]">AI</span>
-            </h1>
-            <p className="font-sans text-[10px] text-[#737686] uppercase tracking-wider mt-1.5 font-bold">
-              Clinical Portal
-            </p>
-          </div>
+          <Link
+            to="/dashboard"
+            className="block px-2 py-3 mb-2 text-left group rounded-xl hover:bg-[#eaedff]/60 transition-all cursor-pointer"
+            aria-label="KidneyVision AI — Clinical Portal Dashboard"
+          >
+            <div>
+              <h1 className="font-sans text-xl font-extrabold text-[#111827] tracking-tight leading-none group-hover:text-[#2563eb] transition-colors">
+                KidneyVision <span className="text-[#2563eb]">AI</span>
+              </h1>
+              <p className="font-sans text-[10px] text-[#737686] uppercase tracking-wider mt-1.5 font-bold group-hover:text-[#2563eb]/80 transition-colors">
+                Clinical Portal
+              </p>
+            </div>
+          </Link>
 
           <div className="px-1.5">
             <button 
@@ -105,7 +127,12 @@ function PortalLayout() {
             <Link to="/analysis" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
                 activeTab === "analysis" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"
             }`}>
-              <Activity className="w-4.5 h-4.5 shrink-0" /> New Analysis
+              <PlusCircle className="w-4.5 h-4.5 shrink-0" /> New Analysis
+            </Link>
+            <Link to="/patients" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
+                activeTab === "patients" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"
+            }`}>
+              <Users className="w-4.5 h-4.5 shrink-0" /> Patients
             </Link>
             <Link to="/history" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-left cursor-pointer ${
                 activeTab === "history" ? "bg-[#eaedff] text-[#2563eb] font-bold shadow-sm translate-x-1" : "text-[#434655] hover:text-[#131b2e] hover:bg-[#eaedff]/45"
@@ -151,17 +178,26 @@ function PortalLayout() {
             className="mt-4 px-2 py-2 flex items-center gap-3 border-t border-[#c3c6d7]/20 pt-4 hover:bg-[#eaedff]/60 rounded-xl transition-all group cursor-pointer"
             title="Clinician Profile & Settings"
           >
-            <img 
-              alt="Clinician Avatar Badge" 
-              className="w-9 h-9 rounded-full object-cover border border-[#c3c6d7] group-hover:border-[#2563eb] transition-all" 
-              src={user?.avatarUrl || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=150&q=80"}
-            />
+            {user?.avatarUrl ? (
+              <img 
+                alt="Clinician Avatar Badge" 
+                className="w-9 h-9 rounded-full object-cover border border-[#c3c6d7] group-hover:border-[#2563eb] transition-all" 
+                src={user.avatarUrl}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = CLINICIAN_AVATAR_FALLBACK_SVG;
+                }}
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-[#eff4fe] text-[#2563eb] border border-[#c3c6d7] flex items-center justify-center font-bold text-xs group-hover:border-[#2563eb] transition-all shrink-0">
+                {user?.name ? user.name.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : "DR"}
+              </div>
+            )}
             <div className="flex flex-col min-w-0 text-left">
               <span className="font-sans text-xs text-[#131b2e] font-bold truncate group-hover:text-[#2563eb] transition-colors">
                 {user?.name || "Dr. Marouan Sellami"}
               </span>
               <span className="text-[10px] text-[#737686] font-semibold tracking-wider font-sans mt-0.5 uppercase group-hover:text-[#2563eb]/80 transition-colors">
-                Radiology
+                {user?.role || "Radiology"}
               </span>
             </div>
           </Link>
@@ -175,6 +211,7 @@ function PortalLayout() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<AppDashboard />} />
               <Route path="/analysis" element={<AppNewAnalysis onAddSuccess={() => navigate("/history")} />} />
+              <Route path="/patients" element={<AppPatients />} />
               <Route path="/history" element={<AppHistory />} />
               <Route path="/reports" element={<AppReports />} />
               <Route path="/settings" element={<AppSettings />} />

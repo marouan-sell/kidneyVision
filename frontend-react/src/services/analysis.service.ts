@@ -162,9 +162,21 @@ export const createPrediction = analyzeImage;
  * 2. GET /analyses
  * Fetch user scan analyses with pagination
  */
-export async function getAnalyses(page: number = 1, perPage: number = 10): Promise<{ data: KidneyAnalysis[]; meta: any }> {
+export async function getAnalyses(
+  page: number = 1,
+  perPage: number = 10,
+  search?: string,
+  status?: string
+): Promise<{ data: KidneyAnalysis[]; meta: any }> {
   try {
-    const response = await apiClient.get(`/analyses?page=${page}&per_page=${perPage}`, {
+    let url = `/analyses?page=${page}&per_page=${perPage}`;
+    if (search && search.trim()) {
+      url += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    if (status && status.trim() && status !== 'All') {
+      url += `&status=${encodeURIComponent(status.trim())}`;
+    }
+    const response = await apiClient.get(url, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("kv_token") || ""}`
       }

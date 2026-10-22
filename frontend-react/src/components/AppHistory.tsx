@@ -8,9 +8,11 @@ import { Link } from "react-router-dom";
 import { 
   Search, Calendar, Filter, Eye, Trash2, Sliders, X, 
   ChevronRight, ChevronLeft, Loader2, Award, ClipboardCheck, ArrowUpRight, CheckCircle2, AlertCircle, RefreshCw,
-  FileText, Download, FileDown, Sparkles, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck
+  FileText, Download, FileDown, ZoomIn, ExternalLink, Crosshair, Ruler, Activity, Cpu, Layers, ShieldCheck,
+  ChevronDown, Info, Check, PlusCircle
 } from "lucide-react";
 import { getAnalyses, deleteAnalysis, downloadReport, updateAnalysis, getReportPdfBlobUrl } from "../services";
+import { CLINICAL_SCAN_FALLBACK_SVG } from "../services/client";
 import { KidneyAnalysis, DiagnosisResult } from "../types";
 import { parseClinicalError, ClinicalError } from "../utils/errorParser";
 import LoadingSkeleton from "./common/LoadingSkeleton";
@@ -97,10 +99,10 @@ export default function AppHistory() {
     setNoteSavedFeedback(false);
   };
 
-  async function loadAnalyses(page: number) {
+  async function loadAnalyses(page: number, search?: string, status?: string) {
     setLoading(true);
     try {
-      const response = await getAnalyses(page, 10);
+      const response = await getAnalyses(page, 10, search, status);
       setAnalyses(response.data);
       setMeta(response.meta);
       setCurrentPage(response.meta.current_page);
@@ -118,8 +120,11 @@ export default function AppHistory() {
   }
 
   useEffect(() => {
-    loadAnalyses(currentPage);
-  }, [currentPage]);
+    const timer = setTimeout(() => {
+      loadAnalyses(currentPage, searchId, statusFilter);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchId, statusFilter]);
 
   // Handle Deletion (DELETE /analyses/:id)
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -254,7 +259,7 @@ export default function AppHistory() {
             >
               <Calendar className="w-4 h-4 text-[#737686]" />
               {dateFilter}
-              <span className="text-[10px] text-[#737686]">▼</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#737686]" />
             </button>
 
             {showDateDropdown && (
@@ -286,7 +291,7 @@ export default function AppHistory() {
             >
               <Filter className="w-4 h-4 text-[#737686]" />
               {statusFilter}
-              <span className="text-[10px] text-[#737686]">▼</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#737686]" />
             </button>
             
             {showFilterDropdown && (
@@ -323,12 +328,15 @@ export default function AppHistory() {
           <div className="flex items-start gap-2.5">
             {notification.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" /> :
              notification.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> :
-             <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />}
+             <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />}
             <div>
               <h4 className="font-bold text-xs">{notification.title}</h4>
               <p className="mt-0.5 opacity-90">{notification.message}</p>
               {notification.suggestion && (
-                <p className="mt-1 text-[11px] font-medium opacity-80 italic">💡 {notification.suggestion}</p>
+                <p className="mt-1 text-[11px] font-medium opacity-80 italic flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+                  <span>{notification.suggestion}</span>
+                </p>
               )}
             </div>
           </div>
@@ -351,9 +359,7 @@ export default function AppHistory() {
           </div>
         ) : analyses.length === 0 ? (
           <div className="py-20 text-center space-y-3 px-4">
-            <div className="w-12 h-12 rounded-full bg-[#f2f3ff] mx-auto flex items-center justify-center text-[#2563eb]">
-              <FileText className="w-6 h-6" />
-            </div>
+            <FileText className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-1" />
             <div>
               <h4 className="font-bold text-[#131b2e] text-sm">No analyses yet</h4>
               <p className="text-xs text-[#737686] max-w-sm mx-auto mt-1">
@@ -364,7 +370,7 @@ export default function AppHistory() {
               to="/analysis"
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#2563eb] hover:bg-[#004ac6] text-white text-xs font-bold rounded-lg shadow-sm transition-all"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <PlusCircle className="w-3.5 h-3.5" />
               Start New Analysis
             </Link>
           </div>
@@ -421,7 +427,7 @@ export default function AppHistory() {
                               alt="Ultrasound scan"
                               className="w-10 h-10 rounded-lg object-cover border border-[#c3c6d7] bg-neutral-900 group-hover/thumb:ring-2 group-hover/thumb:ring-[#2563eb] transition-all"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=400&q=80";
+                                (e.target as HTMLImageElement).src = CLINICAL_SCAN_FALLBACK_SVG;
                               }}
                             />
                             <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
@@ -660,9 +666,6 @@ export default function AppHistory() {
                 <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs">
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-[#131b2e]">Visual Diagnostic Evidence</span>
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
-                      {selectedAnalysis.modelVersion || "ConvNeXt-Tiny Master"}
-                    </span>
                   </div>
                   <span className="text-[11px] text-[#737686]">Click image to enlarge</span>
                 </div>
@@ -679,7 +682,7 @@ export default function AppHistory() {
                           : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                       }`}
                     >
-                      <Sparkles className="w-3 h-3" />
+                      <Layers className="w-3 h-3" />
                       Dual Panel
                     </button>
                   )}
@@ -745,22 +748,15 @@ export default function AppHistory() {
                         setEnlargedImageUrl(activeImg);
                         setEnlargedImageTitle(`${selectedAnalysis.patientName || selectedAnalysis.patientId} — ${viewLabel} (#${selectedAnalysis.id})`);
                       }}
-                      className={`${dossierViewMode === "panel" ? "aspect-[2.36/1] sm:aspect-[16/9]" : "aspect-video"} bg-black rounded-lg relative overflow-hidden flex items-center justify-center border border-[#c3c6d7] cursor-pointer group shadow-sm transition-all`}
+                      className="aspect-video bg-black rounded-lg relative overflow-hidden flex items-center justify-center border border-[#c3c6d7] cursor-pointer group shadow-sm transition-all"
                       title="Click to inspect full resolution"
                     >
-                      {dossierViewMode === "gradcam" && (
-                        <img
-                          alt="Underlying Scan"
-                          className="absolute inset-0 w-full h-full object-cover select-none"
-                          src={selectedAnalysis.cleanedScanUrl || selectedAnalysis.imageUrl}
-                        />
-                      )}
                       <img 
                         alt={viewLabel} 
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 relative z-10" 
                         src={activeImg} 
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = selectedAnalysis.imageUrl;
+                          (e.target as HTMLImageElement).src = selectedAnalysis.imageUrl || CLINICAL_SCAN_FALLBACK_SVG;
                         }}
                       />
                       <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded font-mono border border-white/10">
@@ -786,10 +782,10 @@ export default function AppHistory() {
                     <ShieldCheck className={`w-4 h-4 ${selectedAnalysis.gateEvaluation.gate_passed ? "text-emerald-600" : "text-amber-600"}`} />
                     <div>
                       <span className="font-bold block leading-tight">
-                        Stage-1 Gatekeeper: {selectedAnalysis.gateEvaluation.gate_passed ? "Renal Ultrasound Verified" : "Non-Standard Scan"}
+                        Modality Screening: {selectedAnalysis.gateEvaluation.gate_passed ? "Renal Ultrasound Verified" : "Non-Standard Scan"}
                       </span>
                       <span className="text-[10px] text-slate-500">
-                        MobileNetV3 Anatomical Validation
+                        Anatomical Feature Screening
                       </span>
                     </div>
                   </div>
@@ -811,10 +807,9 @@ export default function AppHistory() {
                 <div className="space-y-2 bg-[#faf8ff] p-3 rounded-xl border border-[#c3c6d7]/50">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#131b2e] flex items-center gap-1.5">
-                      <Activity className="w-3.5 h-3.5 text-blue-600" />
+                      <Layers className="w-3.5 h-3.5 text-slate-400 stroke-[1.75]" />
                       4-Class Probability Spectrum
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">ConvNeXt-Tiny</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {[
@@ -900,7 +895,7 @@ export default function AppHistory() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div className="font-sans text-xs font-bold text-[#131b2e] flex items-center gap-1.5">
-                    <ClipboardCheck className="w-4 h-4 text-[#2563eb]" />
+                    <ClipboardCheck className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                     Radiological Signature Addendum
                   </div>
                   {!isEditingNote ? (
@@ -971,8 +966,9 @@ export default function AppHistory() {
                   </div>
                 )}
                 {noteSavedFeedback && (
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
-                    ✓ Addendum notes saved to database and PDF report
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>Addendum notes saved to database and PDF report</span>
                   </span>
                 )}
               </div>
@@ -1141,7 +1137,7 @@ export default function AppHistory() {
                 alt="High-resolution ultrasound scan"
                 className="max-h-[70vh] w-auto max-w-full object-contain rounded"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80";
+                  (e.target as HTMLImageElement).src = CLINICAL_SCAN_FALLBACK_SVG;
                 }}
               />
             </div>

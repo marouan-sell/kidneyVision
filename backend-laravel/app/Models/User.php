@@ -23,8 +23,15 @@ class User extends Authenticatable
         'password',
         'hospital',
         'role',
+        'avatar_path',
         'signature_configured',
+        'signature_path',
+        'signature_updated_at',
         'is_admin',
+        'mfa_enabled',
+        'mfa_secret',
+        'mfa_recovery_codes',
+        'mfa_confirmed_at',
     ];
 
     /**
@@ -33,6 +40,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'mfa_secret',
+        'mfa_recovery_codes',
     ];
 
     /**
@@ -44,8 +53,44 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'signature_configured' => 'boolean',
+            'signature_updated_at' => 'datetime',
             'is_admin' => 'boolean',
+            'mfa_enabled' => 'boolean',
+            'mfa_secret' => 'encrypted',
+            'mfa_recovery_codes' => 'encrypted:array',
+            'mfa_confirmed_at' => 'datetime',
         ];
+    }
+
+
+    /**
+     * Get full URL to user avatar image.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar_path) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', $this->avatar_path);
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        }
+
+        return asset('storage/' . $path);
+    }
+
+    /**
+     * Get full URL to user signature image.
+     */
+    public function getSignatureUrlAttribute(): ?string
+    {
+        if (!$this->signature_path) {
+            return null;
+        }
+
+        return url('/api/profile/signature');
     }
 
     /**

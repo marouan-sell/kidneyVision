@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Float, Html, Center, useGLTF } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { RotateCcw, ZoomIn, ZoomOut, Play, Pause, Sparkles } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Play, Pause, Layers } from 'lucide-react';
 import {
   createKidneyGeometry,
   createKidneyDiffuseTexture,
@@ -24,23 +24,40 @@ function GlbKidneyModel({ modelUrl }: { modelUrl: string }) {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        if (child.material) {
-          // Enhance organic gloss and reflectivity
-          child.material.roughness = THREE.MathUtils.clamp(
-            child.material.roughness ?? 0.3,
-            0.15,
-            0.45
-          );
-          child.material.metalness = THREE.MathUtils.clamp(
-            child.material.metalness ?? 0.05,
-            0.0,
-            0.15
-          );
-          if ('clearcoat' in child.material) {
-            child.material.clearcoat = 0.85;
-            child.material.clearcoatRoughness = 0.15;
-          }
+
+        const existingMat = child.material as THREE.MeshStandardMaterial;
+
+        // Upgrade to high-fidelity anatomical MeshPhysicalMaterial
+        // Emulates deep vascularized renal parenchyma with biological sheen
+        const anatomicalMat = new THREE.MeshPhysicalMaterial({
+          map: existingMat?.map || null,
+          normalMap: existingMat?.normalMap || null,
+          normalScale: new THREE.Vector2(0.9, 0.9),
+          // Authentic anatomical renal crimson / vascularized burgundy
+          color: new THREE.Color('#8C2524'),
+          // Natural organic tissue roughness (prevents chalky white glare)
+          roughness: 0.42,
+          metalness: 0.02,
+          // Delicate biological moisture of renal capsule
+          clearcoat: 0.45,
+          clearcoatRoughness: 0.25,
+          // Organic cellular sheen catching contour light
+          sheen: 0.85,
+          sheenColor: new THREE.Color('#C23636'),
+          sheenRoughness: 0.35,
+          ior: 1.42,
+          reflectivity: 0.45,
+        });
+
+        if (anatomicalMat.map) {
+          anatomicalMat.map.colorSpace = THREE.SRGBColorSpace;
+          anatomicalMat.map.needsUpdate = true;
         }
+        if (anatomicalMat.normalMap) {
+          anatomicalMat.normalMap.needsUpdate = true;
+        }
+
+        child.material = anatomicalMat;
       }
     });
     return clone;
@@ -170,8 +187,8 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
     >
       {/* Top Banner */}
       <div className="absolute top-2.5 left-3 z-10 flex items-center gap-2 pointer-events-none">
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-850/90 backdrop-blur-md border border-slate-700 shadow-sm text-[10px] font-medium text-slate-200">
-          <Sparkles className="w-3 h-3 text-rose-400" />
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-850/90 backdrop-blur-md border border-slate-700 shadow-sm text-[10px] font-medium text-slate-200">
+          <Layers className="w-3 h-3 text-rose-400" />
           3D Anatomy
         </div>
       </div>
@@ -183,22 +200,24 @@ const Kidney3DViewerInner: React.FC<Kidney3DViewerProps> = ({
           shadows
           gl={{ antialias: true, alpha: true }}
         >
-          {/* Medical Studio Lighting Rig */}
-          <ambientLight intensity={1.1} />
-          {/* Main Key Light */}
+          {/* Medical Studio Lighting Rig - Soft organic anatomical illumination */}
+          <ambientLight intensity={0.55} color="#ffffff" />
+          {/* Main Key Light: Warm surgical key light */}
           <directionalLight
-            position={[5, 6, 5]}
-            intensity={2.2}
+            position={[4, 5, 4]}
+            intensity={1.25}
+            color="#fff7ed"
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
             shadow-bias={-0.0001}
           />
-          {/* Soft Cool Fill Light */}
-          <directionalLight position={[-5, 2, 3]} intensity={1.0} color="#dbeafe" />
-          {/* Rear Rim/Contour Light */}
-          <directionalLight position={[0, 4, -5]} intensity={1.8} color="#fca5a5" />
-          <directionalLight position={[-3, -4, -3]} intensity={0.9} color="#93c5fd" />
+          {/* Soft Cool Fill Light: Balances shadows with subtle clinical blue tone */}
+          <directionalLight position={[-4, 2, 3]} intensity={0.5} color="#e0f2fe" />
+          {/* Rear Rim/Contour Light: Accentuates biological edge silhouette in crimson */}
+          <directionalLight position={[0, 4, -4]} intensity={0.85} color="#fca5a5" />
+          {/* Soft inferior bounce light */}
+          <directionalLight position={[-2, -3, -2]} intensity={0.3} color="#93c5fd" />
 
           <Suspense
             fallback={
@@ -300,9 +319,7 @@ class SafeViewerErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="w-full h-full min-h-[250px] lg:min-h-[265px] rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 p-6 flex flex-col items-center justify-center text-center">
-          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-rose-400 mb-3 shadow-inner">
-            <Sparkles className="w-6 h-6" />
-          </div>
+          <Layers className="w-8 h-8 text-rose-400 mb-3 stroke-[1.75]" />
           <h4 className="text-sm font-semibold text-slate-200">3D Anatomical Reference</h4>
           <p className="text-xs text-slate-400 mt-1 max-w-[220px]">
             Renal 3D visualization engine standby mode.

@@ -31,13 +31,38 @@ class AnalysisRepository implements AnalysisRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findByUser(int $userId, int $perPage = 15): LengthAwarePaginator
+    public function findByUser(int $userId, int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator
     {
-        return $this->model
+        $query = $this->model
             ->forUser($userId)
-            ->with('report')
-            ->latest()
-            ->paginate($perPage);
+            ->with('report');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('patient_id', 'like', "%{$search}%")
+                  ->orWhere('patient_name', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhere('anatomical_location', 'like', "%{$search}%")
+                  ->orWhere('prediction', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($status) && strtolower($status) !== 'all') {
+            $statusLower = strtolower($status);
+            if ($statusLower === 'normal findings' || $statusLower === 'normal') {
+                $query->whereRaw("LOWER(prediction) = 'normal'");
+            } elseif ($statusLower === 'kidney stone' || $statusLower === 'stone') {
+                $query->whereRaw("LOWER(prediction) = 'stone'");
+            } elseif ($statusLower === 'renal cyst' || $statusLower === 'cyst') {
+                $query->whereRaw("LOWER(prediction) = 'cyst'");
+            } elseif ($statusLower === 'renal tumor' || $statusLower === 'tumor') {
+                $query->whereRaw("LOWER(prediction) = 'tumor'");
+            } elseif ($statusLower === 'needs review' || $statusLower === 'review') {
+                $query->where('status', AnalysisStatus::REVIEW);
+            }
+        }
+
+        return $query->latest()->paginate($perPage);
     }
 
     /**
@@ -63,6 +88,10 @@ class AnalysisRepository implements AnalysisRepositoryInterface
      */
     public function delete(Analysis $analysis): bool
     {
+        if (!empty($analysis->image_path)) {
+            \Illuminate\Support\Facades\Storage::disk('private')->delete($analysis->image_path);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($analysis->image_path);
+        }
         return (bool) $analysis->delete();
     }
 

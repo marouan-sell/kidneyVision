@@ -3,16 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { 
-  Upload, Sparkles, Loader2, Play, CircleDot, ShieldCheck, 
-  Eye, FileText, CheckCircle2, ChevronRight, Download, Dna, 
-  ArrowRight, Heart, AlertCircle, FileDown, X, RefreshCw,
-  User, Calendar, Layers, Image as ImageIcon, Check, Sliders,
-  HelpCircle, Info, Stethoscope, Hash, Trash2, Crosshair,
+  Upload, Loader2, Play, CircleDot, ShieldCheck, 
+  Eye, FileText, CheckCircle2, ChevronRight, Download, 
+  ArrowRight, AlertCircle, FileDown, X, RefreshCw,
+  User, Calendar, Layers, Image as ImageIcon, Check,
+  HelpCircle, Info, Trash2, Crosshair,
   Ruler, Activity, Cpu, CheckCircle, Maximize2
 } from "lucide-react";
-import { createPrediction, downloadReport, updateAnalysis, getReportPdfBlobUrl } from "../services";
+import { createPrediction, downloadReport, updateAnalysis, getReportPdfBlobUrl, fetchPatients } from "../services";
 import { DiagnosisResult, KidneyAnalysis } from "../types";
 import { validateScanFile } from "../utils/fileValidation";
 import { parseClinicalError, ClinicalError } from "../utils/errorParser";
@@ -22,13 +23,64 @@ interface AppNewAnalysisProps {
 }
 
 export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
-  // Input fields state — starts completely empty for clinical doctor entry
-  const [patientId, setPatientId] = useState<string>("");
-  const [patientName, setPatientName] = useState<string>("");
-  const [patientAge, setPatientAge] = useState<string>("");
-  const [patientGender, setPatientGender] = useState<"Male" | "Female" | "Other">("Male");
+  const locationState = useLocation().state as { patient?: any } | undefined;
+
+  // Input fields state — starts completely empty for clinical doctor entry, or pre-filled from Patient Profile
+  const [patientId, setPatientId] = useState<string>(locationState?.patient?.patient_id || "");
+  const [patientName, setPatientName] = useState<string>(locationState?.patient?.name || "");
+  const [patientAge, setPatientAge] = useState<string>(locationState?.patient?.age ? String(locationState.patient.age) : "");
+  const [patientGender, setPatientGender] = useState<"Male" | "Female" | "Other">(
+    locationState?.patient?.gender === "Female" ? "Female" : (locationState?.patient?.gender === "Other" ? "Other" : "Male")
+  );
   const [location, setLocation] = useState<"Left Kidney" | "Right Kidney" | "Unspecified">("Left Kidney");
   const [clinicianNotes, setClinicianNotes] = useState<string>("");
+  const [existingPatients, setExistingPatients] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchPatients()
+      .then((data) => {
+        if (Array.isArray(data)) setExistingPatients(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (locationState?.patient) {
+      const p = locationState.patient;
+      if (p.patient_id) setPatientId(p.patient_id);
+      if (p.name) setPatientName(p.name);
+      if (p.age) setPatientAge(String(p.age));
+      if (p.gender) {
+        const g = p.gender.toLowerCase();
+        if (g === "female") setPatientGender("Female");
+        else if (g === "male") setPatientGender("Male");
+        else setPatientGender("Other");
+      }
+    }
+  }, [locationState]);
+
+  const handlePatientSelect = (selectedId: string) => {
+    if (!selectedId) {
+      setPatientId("");
+      return;
+    }
+    const matched = existingPatients.find((p) => p.patient_id === selectedId);
+    if (matched) {
+      setPatientId(matched.patient_id);
+      setPatientName(matched.name || "");
+      if (matched.age) setPatientAge(matched.age.toString());
+      if (matched.gender) {
+        const g = matched.gender.toLowerCase();
+        if (g === "female") setPatientGender("Female");
+        else if (g === "male") setPatientGender("Male");
+        else setPatientGender("Other");
+      }
+    }
+  };
+
+  const handlePatientNameChange = (name: string) => {
+    setPatientName(name);
+  };
   
   // Custom file upload state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -55,9 +107,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
   // Analysis Pipeline Stages
   const ANALYSIS_STAGES = [
     { id: "uploading", label: "Uploading Scan", desc: "Streaming acoustic tensor to secure medical pipeline..." },
-    { id: "gatekeeper", label: "Stage-1 Gatekeeper Screening", desc: "MobileNetV3 evaluating renal vs non-kidney scan..." },
-    { id: "preprocessing", label: "Spatial Cleaning & Inpainting", desc: "Top-Hat filtering & Telea inpainting on 224x224 tensor..." },
-    { id: "analyzing", label: "ConvNeXt 4-Class Inference", desc: "Evaluating Cyst, Normal, Stone, Tumor pathologies..." },
+    { id: "gatekeeper", label: "Modality Screening", desc: "Evaluating renal scan authenticity and clarity..." },
+    { id: "preprocessing", label: "Spatial Cleaning & Inpainting", desc: "Digital artifact reduction on ultrasound tensor..." },
+    { id: "analyzing", label: "Diagnostic Evaluation", desc: "Evaluating Cyst, Normal, Stone, and Tumor pathologies..." },
     { id: "generating", label: "Grad-CAM Heatmap & Biometrics", desc: "Synthesizing spatial feature activation map & lesion diameter..." },
     { id: "completed", label: "Diagnostic Report Ready", desc: "Audit logged and ready for radiologist confirmation." },
   ];
@@ -82,7 +134,6 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
     // If patient name is currently blank, suggest an automated placeholder from filename
     if (!patientName.trim()) {
       const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-      // Only set if not a generic generic hash
       if (cleanName.length > 2 && !cleanName.match(/^[0-9a-f]{8,}$/i)) {
         setPatientName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
       }
@@ -116,7 +167,12 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
     }
   };
 
-  const handleRemoveFile = () => {
+  // Safe file removal that prevents event bubbling and stabilizes layout position
+  const handleRemoveFile = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setUploadedFile(null);
     if (uploadedFilePreview) {
       URL.revokeObjectURL(uploadedFilePreview);
@@ -124,7 +180,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
     }
     setUploadError(null);
     setActiveAnalysis(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   // Run AI Scan Execution
@@ -166,6 +224,12 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
 
       setTimeout(() => {
         setActiveAnalysis(res);
+        if (res.patientId) {
+          setPatientId(res.patientId);
+        }
+        if (res.patientName) {
+          setPatientName(res.patientName);
+        }
         if (res.clinicianNotes) {
           setClinicianNotes(res.clinicianNotes);
         }
@@ -199,27 +263,23 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
   };
 
   return (
-    <div className="space-y-6 text-left max-w-7xl mx-auto">
+    <div className="space-y-6 text-left max-w-7xl mx-auto pb-8 font-sans">
       
-      {/* Top Header & Breadcrumbs matching Dashboard style */}
+      {/* Top Header & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-[#c3c6d7]/30">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#2563eb] text-[11px] font-bold mb-1">
-            <Sparkles className="w-3 h-3" />
-            AI Computer Vision Inference Console
-          </div>
           <h1 className="font-sans text-2xl font-bold text-[#131b2e] tracking-tight">
             New Renal Diagnostic Analysis
           </h1>
           <p className="font-sans text-xs text-[#434655]">
-            Upload renal CT or ultrasound scans to run Stage-1 Gatekeeper screening, ConvNeXt-Tiny 4-class classification (Cyst, Normal, Stone, Tumor), and Grad-CAM explainability localization.
+            Upload renal CT or ultrasound scans for automated pathology triage and Grad-CAM visual attribution.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#c3c6d7] rounded-lg text-xs font-semibold text-[#434655] shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-sans text-[11px]">AI Model: ConvNeXt-Tiny (4-Class) & Gatekeeper</span>
+            <span className="font-sans text-[11px]">Diagnostic Engine Ready</span>
           </div>
           <a
             href="/help"
@@ -247,8 +307,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </h4>
               <p className="font-sans text-xs text-red-700 mt-1 leading-relaxed">{clinicalError.message}</p>
               {clinicalError.suggestion && (
-                <p className="font-sans text-[11px] text-red-800 bg-red-100/60 p-2 rounded-md mt-2 font-medium">
-                  💡 {clinicalError.suggestion}
+                <p className="font-sans text-[11px] text-red-800 bg-red-100/60 p-2 rounded-md mt-2 font-medium flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-red-700 shrink-0" />
+                  <span>{clinicalError.suggestion}</span>
                 </p>
               )}
             </div>
@@ -277,7 +338,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             >
               <RefreshCw className="w-3 h-3" />
-              Retry Analysis
+              <span>Retry Analysis</span>
             </button>
           </div>
         </div>
@@ -293,42 +354,103 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
           <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 shadow-xs space-y-4 hover:border-slate-400 transition-colors">
             <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
               <h3 className="font-sans text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                  <User className="w-3.5 h-3.5" />
-                </div>
+                <User className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                 Patient Registration Parameters
               </h3>
               <span className="text-[10px] text-[#737686] font-medium">Step 1 of 2</span>
             </div>
 
+            {/* Pre-linked Patient Banner if navigated from profile */}
+            {patientId && (
+              <div className="bg-[#eaedff]/60 border border-[#2563eb]/30 rounded-lg p-2.5 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#2563eb] shrink-0" />
+                  <span className="text-[#131b2e]">
+                    Linked to Patient: <strong className="font-mono text-[#2563eb]">{patientId}</strong>
+                    {patientName ? ` (${patientName})` : ''}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPatientId("");
+                    setPatientName("");
+                    setPatientAge("");
+                  }}
+                  className="text-[11px] text-[#2563eb] hover:underline cursor-pointer font-medium"
+                >
+                  Create As New Patient Instead
+                </button>
+              </div>
+            )}
+
+            {/* Quick Existing Patient Dropdown */}
+            {existingPatients.length > 0 && (
+              <div className="space-y-1">
+                <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center justify-between" htmlFor="existing-patient-select">
+                  <span>Select Existing Registered Patient</span>
+                  <span className="text-[10px] text-[#737686] font-normal">Reuses patient ID across analyses</span>
+                </label>
+                <select
+                  id="existing-patient-select"
+                  className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white cursor-pointer"
+                  value={patientId}
+                  onChange={(e) => handlePatientSelect(e.target.value)}
+                >
+                  <option value="">-- New Patient (Will generate guaranteed unique Patient ID) --</option>
+                  {existingPatients.map((p) => (
+                    <option key={p.id || p.patient_id} value={p.patient_id}>
+                      [{p.patient_id}] {p.name} {p.age ? `· ${p.age} yrs` : ''} {p.gender ? `· ${p.gender}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Patient ID and Name */}
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1 col-span-1">
-                <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center gap-1" htmlFor="patient-id">
+                <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center justify-between" htmlFor="patient-id">
                   <span>Patient ID</span>
+                  <span className="text-[9px] text-[#2563eb] font-normal">Auto if blank</span>
                 </label>
                 <input 
                   id="patient-id"
                   className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white font-mono placeholder:text-slate-400" 
                   type="text" 
-                  placeholder="e.g. PT-8492"
+                  placeholder="e.g. PT-10001"
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
                 />
               </div>
 
               <div className="space-y-1 col-span-2">
-                <label className="font-sans text-[11px] font-semibold text-[#434655]" htmlFor="patient-name">
-                  Patient Full Name
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="font-sans text-[11px] font-semibold text-[#434655]" htmlFor="patient-name">
+                    Patient Full Name
+                  </label>
+                  {existingPatients.length > 0 && (
+                    <span className="text-[9px] text-slate-400 font-medium">
+                      {existingPatients.length} existing patient{existingPatients.length > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
                 <input 
                   id="patient-name"
+                  list="existing-patients-datalist"
                   className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white placeholder:text-slate-400" 
                   type="text" 
                   placeholder="e.g. Sarah Jenkins or Case #104"
                   value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
+                  onChange={(e) => handlePatientNameChange(e.target.value)}
                 />
+                <datalist id="existing-patients-datalist">
+                  {existingPatients.map((p) => (
+                    <option key={p.id || p.patient_id} value={p.name}>
+                      {p.patient_id} {p.age ? `· ${p.age}y` : ""} {p.gender ? `· ${p.gender}` : ""}
+                    </option>
+                  ))}
+                </datalist>
               </div>
             </div>
 
@@ -367,7 +489,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </div>
             </div>
 
-            {/* Anatomical location targets */}
+            {/* Anatomical Target Site Selection */}
             <div className="space-y-1.5 pt-1">
               <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center justify-between">
                 <span>Anatomical Target Site</span>
@@ -400,15 +522,13 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
           <div className="bg-white border border-[#c3c6d7] rounded-xl p-5 shadow-xs space-y-4 hover:border-slate-400 transition-colors">
             <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
               <h3 className="font-sans text-xs font-bold uppercase tracking-wider text-[#131b2e] flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                  <Upload className="w-3.5 h-3.5" />
-                </div>
+                <Upload className="w-4 h-4 text-slate-400 stroke-[1.75]" />
                 Renal Scan Upload (CT / Ultrasound)
               </h3>
               <span className="text-[10px] text-[#737686] font-medium">Step 2 of 2</span>
             </div>
 
-            {/* Upload Zone */}
+            {/* Upload Zone with stabilized height to prevent shifting when deleted */}
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -418,7 +538,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   fileInputRef.current?.click();
                 }
               }}
-              className={`border-2 border-dashed rounded-xl p-6 transition-all text-center relative cursor-pointer ${
+              className={`border-2 border-dashed rounded-xl p-6 min-h-[175px] flex flex-col items-center justify-center transition-all text-center relative cursor-pointer ${
                 isDragging
                   ? "border-[#2563eb] bg-blue-50/60 scale-[1.01]"
                   : uploadedFile
@@ -435,8 +555,8 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               />
 
               {uploadedFile ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-3">
+                <div className="space-y-3 w-full">
+                  <div className="flex items-center justify-center">
                     <div className="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-xs">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
@@ -456,35 +576,30 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="px-2.5 py-1 text-[11px] font-semibold text-[#2563eb] hover:bg-blue-50 rounded-md border border-blue-200 transition-colors"
+                      className="px-2.5 py-1 text-[11px] font-semibold text-[#2563eb] hover:bg-blue-50 rounded-md border border-blue-200 transition-colors cursor-pointer"
                     >
                       Change Scan
                     </button>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFile();
-                      }}
-                      className="px-2.5 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 rounded-md border border-red-200 transition-colors flex items-center gap-1"
+                      onClick={(e) => handleRemoveFile(e)}
+                      className="px-2.5 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 rounded-md border border-red-200 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
-                      Remove
+                      <span>Remove</span>
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#2563eb] flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">
-                    <ImageIcon className="w-6 h-6" />
-                  </div>
+                  <ImageIcon className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-1 group-hover:text-slate-600 transition-colors" />
                   <div className="font-sans text-xs font-bold text-[#131b2e]">
                     Click or drag & drop renal scan image (CT / Ultrasound)
                   </div>
                   <p className="font-sans text-[10px] text-[#737686] max-w-xs mx-auto">
-                    Supported formats: PNG, JPG • Auto-screened by Gatekeeper
+                    Supported formats: PNG, JPG • Automated modality screening
                   </p>
-                  <div className="pt-2 flex items-center justify-center gap-2">
+                  <div className="pt-2 flex items-center justify-center gap-2 flex-wrap">
                     <span className="px-2 py-0.5 bg-slate-100 rounded text-[9.5px] font-mono text-slate-600 font-medium">Renal CT Axial / Coronal</span>
                     <span className="px-2 py-0.5 bg-slate-100 rounded text-[9.5px] font-mono text-slate-600 font-medium">Ultrasound B-Mode</span>
                   </div>
@@ -529,7 +644,6 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
         <div className="lg:col-span-12 xl:col-span-7 space-y-6">
           
           {/* Main Diagnostic HUD Card */}
-          {/* Main Diagnostic HUD Card */}
           <div className="bg-white border border-[#c3c6d7] rounded-xl overflow-hidden shadow-xs">
             
             {/* Header with status and View Mode Switcher */}
@@ -566,7 +680,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                         }`}
                         title="Grad-CAM Saliency Overlay"
                       >
-                        <Sparkles className="w-3 h-3" />
+                        <Layers className="w-3 h-3 stroke-[1.75]" />
                         Grad-CAM
                       </button>
                     )}
@@ -602,15 +716,11 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
               </div>
             </div>
 
-            <div className={`p-5 ${heatmapViewMode === "panel" && activeAnalysis?.visualizationUrl ? "space-y-5" : "grid md:grid-cols-2 gap-5"}`}>
+            <div className="p-5 flex flex-col space-y-6">
               
-              {/* Scan viewport panel */}
+              {/* Scan viewport panel with locked aspect ratio to stabilize position */}
               <div className="space-y-3">
-                <div className={`rounded-xl border relative overflow-hidden flex items-center justify-center group transition-all duration-300 ${
-                  heatmapViewMode === "panel" && activeAnalysis?.visualizationUrl
-                    ? "aspect-[16/9] sm:aspect-[2.36/1] bg-black min-h-[260px]"
-                    : "aspect-square bg-slate-950"
-                } ${
+                <div className={`rounded-xl border relative overflow-hidden flex items-center justify-center group transition-all duration-300 aspect-[16/10] w-full min-h-[320px] max-h-[500px] bg-slate-950 ${
                   uploadedFilePreview
                     ? "border-[#c3c6d7]"
                     : "bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#edf2f9] border-2 border-dashed border-[#c3c6d7]"
@@ -620,18 +730,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                     <>
                       {/* Image Viewer (Dual Panel, Grad-CAM, Cleaned, or Raw) */}
                       <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                        {heatmapViewMode === "gradcam" && (
-                          <img
-                            alt="Underlying Ultrasound Scan"
-                            className="absolute inset-0 w-full h-full object-cover"
-                            src={activeAnalysis?.cleanedScanUrl || uploadedFilePreview || activeAnalysis?.imageUrl}
-                          />
-                        )}
                         <img
                           alt="Ultrasound Diagnostic Target"
-                          className={`w-full h-full select-none transition-all duration-300 relative z-10 ${
-                            heatmapViewMode === "panel" ? "object-contain" : "object-cover"
-                          }`}
+                          className="w-full h-full select-none transition-all duration-300 relative z-10 object-contain"
                           src={
                             heatmapViewMode === "panel" && activeAnalysis?.visualizationUrl
                               ? activeAnalysis.visualizationUrl
@@ -655,7 +756,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                           )}
                           {heatmapViewMode === "gradcam" && (
                             <>
-                              <Sparkles className="w-3 h-3 text-sky-400" />
+                              <Layers className="w-3 h-3 text-sky-400 stroke-[1.75]" />
                               <span>GRAD-CAM SALIENCY HEATMAP</span>
                             </>
                           )}
@@ -709,9 +810,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   ) : (
                     /* Clean Clinical Empty Viewport Placeholder */
                     <div className="flex flex-col items-center justify-center p-6 text-center space-y-3">
-                      <div className="w-14 h-14 rounded-2xl bg-white border border-[#c3c6d7] shadow-xs flex items-center justify-center text-[#2563eb]">
-                        <ImageIcon className="w-7 h-7" />
-                      </div>
+                      <ImageIcon className="w-8 h-8 text-slate-400 stroke-[1.75] mb-1" />
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-[#131b2e]">Awaiting Ultrasound Scan</p>
                         <p className="text-[11px] text-[#434655] max-w-[220px] leading-relaxed">
@@ -806,19 +905,17 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                 {/* Idle Initial View */}
                 {!isScanning && !activeAnalysis && (
                   <div className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#2563eb] flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 opacity-60" />
-                    </div>
+                    <Layers className="w-8 h-8 text-slate-400 stroke-[1.75] mx-auto mb-1" />
                     <div className="space-y-1">
                       <h5 className="font-sans text-xs font-bold text-[#131b2e]">Scan Awaiting Inference</h5>
-                      <p className="font-sans text-[11px] text-[#737686] max-w-[220px] leading-relaxed">
+                      <p className="font-sans text-[11px] text-[#737686] max-w-[240px] leading-relaxed">
                         Fill in patient details, attach a renal CT or ultrasound slice, and trigger neural discovery to populate full diagnostic metrics.
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Finished AI Analysis Outward Indices with 100% Model Capabilities */}
+                {/* Finished AI Analysis Outward Indices with Model Capabilities */}
                 {!isScanning && activeAnalysis && (
                   <div className="space-y-4">
                     
@@ -851,14 +948,12 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                     {/* Stage-1 Gatekeeper Authenticity Card */}
                     <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                          <ShieldCheck className="w-5 h-5" />
-                        </div>
+                        <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 stroke-[1.75]" />
                         <div className="min-w-0">
                           <div className="font-bold text-emerald-950 flex items-center gap-1.5">
-                            <span>Stage-1 Gatekeeper AI: PASSED</span>
+                            <span>Modality Screening: PASSED</span>
                             <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-200/70 text-emerald-800 font-mono">
-                              MobileNetV3
+                              Verified
                             </span>
                           </div>
                           <div className="text-[11px] text-emerald-800 truncate mt-0.5">
@@ -875,14 +970,14 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       </div>
                     </div>
 
-                    {/* 4-Class Softmax Probability Cards */}
+                    {/* 4-Class Softmax Probability Cards Across All 4 */}
                     {activeAnalysis.classProbabilities && (
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                          <span>ConvNeXt-Tiny 4-Class Probability Spectrum</span>
+                          <span>4-Class Probability Spectrum</span>
                           <span className="font-mono text-[9.5px] text-slate-500">Softmax Normalized</span>
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                           {/* Cyst */}
                           <div className="bg-sky-50 border border-sky-200 rounded-lg p-2 text-center">
                             <div className="text-[10px] text-sky-800 font-bold uppercase tracking-wider">Cyst</div>
@@ -935,7 +1030,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       {/* Lesion Diameter */}
                       <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                         <div className="text-[10px] text-slate-500 font-semibold uppercase flex items-center gap-1">
-                          <Ruler className="w-3 h-3 text-[#2563eb]" />
+                          <Ruler className="w-3 h-3 text-slate-400 stroke-[1.75]" />
                           Lesion Diameter
                         </div>
                         <div className="font-bold text-slate-900 font-mono text-sm mt-0.5">
@@ -949,7 +1044,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       {/* Severity Grade */}
                       <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                         <div className="text-[10px] text-slate-500 font-semibold uppercase flex items-center gap-1">
-                          <Activity className="w-3 h-3 text-purple-600" />
+                          <AlertCircle className="w-3 h-3 text-slate-400 stroke-[1.75]" />
                           Severity Tier
                         </div>
                         <div className="font-bold text-slate-900 text-xs truncate mt-0.5">
@@ -963,7 +1058,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                       {/* Auto-masking / Preprocessing Telemetry */}
                       <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg col-span-2 sm:col-span-1">
                         <div className="text-[10px] text-slate-500 font-semibold uppercase flex items-center gap-1">
-                          <Layers className="w-3 h-3 text-emerald-600" />
+                          <Layers className="w-3 h-3 text-slate-400 stroke-[1.75]" />
                           Auto-Inpainting
                         </div>
                         <div className="font-bold text-slate-900 text-xs mt-0.5">
@@ -974,7 +1069,6 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                         </div>
                       </div>
                     </div>
-
 
                     {/* Action Panel */}
                     <div className="pt-2 flex gap-2 flex-wrap sm:flex-nowrap">
@@ -1097,8 +1191,8 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   disabled={isSavingNotes}
                   className="px-2.5 py-1 bg-[#2563eb] hover:bg-[#004ac6] text-white text-[10.5px] font-bold rounded-md flex items-center gap-1 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
                 >
-                  {isSavingNotes ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                  {isSavingNotes ? "Saving..." : noteSavedSuccess ? "Saved to Report ✓" : "Save Notes"}
+                  {isSavingNotes ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                  {isSavingNotes ? "Saving..." : noteSavedSuccess ? "Saved to Report" : "Save Notes"}
                 </button>
               </div>
               <textarea
@@ -1112,8 +1206,9 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
                   * Signing this addendum logs the exact credentials and timestamp of your active clinician session.
                 </span>
                 {noteSavedSuccess && (
-                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    ✓ Saved to patient record & PDF report
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>Saved to patient record & PDF report</span>
                   </span>
                 )}
               </div>

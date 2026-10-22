@@ -2,7 +2,7 @@ import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import './chartSetup';
 import type { RiskDistributionPoint } from '../../types/analytics';
-import { AlertOctagon, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 
 interface RiskDistributionProps {
   distribution: RiskDistributionPoint[];
@@ -47,13 +47,11 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-rose-50 text-rose-700">
-            <ShieldAlert className="w-4 h-4" />
-          </span>
+          <ShieldAlert className="w-4 h-4 text-slate-400 stroke-[1.75]" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">Clinical Triage Risk Stratification</h3>
             <p className="text-xs text-slate-500">Based on calculus size, position & obstruction</p>
@@ -62,7 +60,7 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
       </div>
 
       {/* Doughnut Chart + Legend */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 my-3">
+      <div className="flex flex-col sm:flex-row items-center gap-4 my-auto py-2">
         {/* Doughnut with center stat */}
         <div className="relative w-36 h-36 flex-shrink-0 flex items-center justify-center">
           <Doughnut data={chartData} options={options} />
@@ -110,10 +108,10 @@ export const RiskDistribution: React.FC<RiskDistributionProps> = ({
         </div>
       </div>
 
-      {/* Note */}
+      {/* Footer / Status Note */}
       <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 text-[11px] text-slate-400">
-        <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
-        <span>Urgent cases trigger immediate clinician review notifications</span>
+        <ShieldAlert className="w-3.5 h-3.5 text-amber-500 stroke-[1.75]" />
+        <span>Urgent cases trigger immediate clinician review priority</span>
       </div>
     </div>
   );

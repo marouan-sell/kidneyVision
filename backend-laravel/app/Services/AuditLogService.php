@@ -45,6 +45,21 @@ class AuditLogService
         $cleanMetadata = $metadata ? $this->sanitizeMetadata($metadata) : null;
 
         try {
+            $lastLog = AuditLog::orderBy('id', 'desc')->first(['record_hash']);
+            $previousHash = $lastLog?->record_hash ?? 'GENESIS_KV_2026';
+            $createdAt = now()->toISOString();
+
+            $recordHash = AuditLog::computeHash(
+                $previousHash,
+                $user?->id,
+                $action,
+                $resourceType,
+                $resourceId ? (string) $resourceId : null,
+                $request?->ip() ?? '127.0.0.1',
+                $createdAt,
+                $cleanMetadata
+            );
+
             return AuditLog::create([
                 'user_id' => $user?->id,
                 'action' => $action,
@@ -53,6 +68,9 @@ class AuditLogService
                 'ip_address' => $request?->ip() ?? '127.0.0.1',
                 'user_agent' => $request ? substr($request->userAgent() ?? '', 0, 255) : null,
                 'metadata' => $cleanMetadata,
+                'previous_hash' => $previousHash,
+                'record_hash' => $recordHash,
+                'created_at' => $createdAt,
             ]);
         } catch (\Throwable $e) {
             Log::error('Failed to write audit log entry', [

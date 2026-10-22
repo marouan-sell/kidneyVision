@@ -47,10 +47,28 @@ class PDFReportController extends Controller
                 request: $request
             );
 
+            $user = $request->user();
+            if ((!$user || !$user->signature_configured || !$user->signature_path) && $analysis->user) {
+                $user = $analysis->user;
+            }
+
+            $signatureBase64 = null;
+            if ($user && $user->signature_configured && $user->signature_path) {
+                $sigPath = $user->signature_path;
+                if (\Illuminate\Support\Facades\Storage::disk('private')->exists($sigPath)) {
+                    $sigBytes = \Illuminate\Support\Facades\Storage::disk('private')->get($sigPath);
+                    $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+                } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($sigPath)) {
+                    $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($sigPath);
+                    $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+                }
+            }
+
             // Generate PDF using DOMPDF
             $pdf = Pdf::loadView('pdf.report', [
                 'analysis' => $analysis,
-                'user' => $request->user()
+                'user' => $user,
+                'signatureBase64' => $signatureBase64,
             ]);
 
             return $pdf->download("kidneyvision_report_{$analysis->id}.pdf");
@@ -107,10 +125,28 @@ class PDFReportController extends Controller
                 request: $request
             );
 
+            $user = $request->user();
+            if ((!$user || !$user->signature_configured || !$user->signature_path) && $analysis->user) {
+                $user = $analysis->user;
+            }
+
+            $signatureBase64 = null;
+            if ($user && $user->signature_configured && $user->signature_path) {
+                $sigPath = $user->signature_path;
+                if (\Illuminate\Support\Facades\Storage::disk('private')->exists($sigPath)) {
+                    $sigBytes = \Illuminate\Support\Facades\Storage::disk('private')->get($sigPath);
+                    $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+                } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($sigPath)) {
+                    $sigBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($sigPath);
+                    $signatureBase64 = 'data:image/png;base64,' . base64_encode($sigBytes);
+                }
+            }
+
             // Stream PDF inline for browser/iframe preview
             $pdf = Pdf::loadView('pdf.report', [
                 'analysis' => $analysis,
-                'user' => $request->user()
+                'user' => $user,
+                'signatureBase64' => $signatureBase64,
             ]);
 
             return $pdf->stream("kidneyvision_report_{$analysis->id}.pdf");

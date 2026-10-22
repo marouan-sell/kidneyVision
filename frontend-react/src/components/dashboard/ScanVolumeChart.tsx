@@ -147,15 +147,13 @@ export const ScanVolumeChart: React.FC<ScanVolumeChartProps> = ({ data }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-sky-50 text-sky-700">
-              <TrendingUp className="w-4 h-4" />
-            </span>
+            <TrendingUp className="w-4 h-4 text-slate-400 stroke-[1.75]" />
             <h3 className="text-sm font-bold text-slate-900">
               Diagnostic Scan Workload & Triage Trends
             </h3>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Temporal cadence across 4-class multi-pathology ultrasound sweeps
+            Temporal scan workload over time
           </p>
         </div>
 

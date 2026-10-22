@@ -14,6 +14,7 @@ class GuestAnalysisController extends Controller
 {
     public function __construct(
         private readonly AIIntegrationServiceInterface $aiService,
+        private readonly \App\Services\ImageSanitizerService $imageSanitizerService,
     ) {}
 
     /**
@@ -90,21 +91,21 @@ class GuestAnalysisController extends Controller
             'image.dimensions' => 'Scan dimensions must be between 32x32 and 4096x4096 pixels.',
         ]);
 
-        // Opportunistically prune temporary guest uploads older than 2 hours
+        // Opportunistically prune temporary guest uploads older than 1 hour from private storage
         try {
-            $files = \Illuminate\Support\Facades\Storage::disk('public')->files('guest_analyses');
-            $cutoff = time() - 7200;
+            $files = \Illuminate\Support\Facades\Storage::disk('private')->files('guest_analyses');
+            $cutoff = time() - 3600;
             foreach ($files as $f) {
-                if (\Illuminate\Support\Facades\Storage::disk('public')->lastModified($f) < $cutoff) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($f);
+                if (\Illuminate\Support\Facades\Storage::disk('private')->lastModified($f) < $cutoff) {
+                    \Illuminate\Support\Facades\Storage::disk('private')->delete($f);
                 }
             }
         } catch (\Throwable) {
             // Ignore background cleanup errors
         }
 
-        // Store temporarily
-        $storedPath = $request->file('image')->store('guest_analyses', 'public');
+        // Store temporarily in private storage
+        $storedPath = $request->file('image')->store('guest_analyses', 'private');
 
         try {
             // Trigger AI Prediction
@@ -119,7 +120,7 @@ class GuestAnalysisController extends Controller
                 'data' => [
                     'prediction' => $result->prediction,
                     'confidence' => $result->confidence,
-                    'image_url' => asset('storage/' . str_replace('\\', '/', $storedPath)),
+                    'image_url' => $result->rawPayload['visualization_base64'] ?? $result->rawPayload['gradcam_image'] ?? null,
                     'heatmap_url' => $result->rawPayload['gradcam_image'] ?? null,
                     'peak_coordinates' => $result->rawPayload['peak_coordinates'] ?? null,
                     'class_probabilities' => $result->rawPayload['class_probabilities'] ?? null,
@@ -135,7 +136,8 @@ class GuestAnalysisController extends Controller
                 ],
             ], Response::HTTP_OK);
         } catch (\Throwable $e) {
-            // Purge rejected/failed scan immediately from server disk
+            // Purge rejected/failed scan immediately from server private disk
+            \Illuminate\Support\Facades\Storage::disk('private')->delete($storedPath);
             \Illuminate\Support\Facades\Storage::disk('public')->delete($storedPath);
 
             $status = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : Response::HTTP_UNPROCESSABLE_ENTITY;

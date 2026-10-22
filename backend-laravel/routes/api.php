@@ -24,9 +24,11 @@ use Illuminate\Support\Facades\Route;
 // ──────────────────────────────────────────────
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])
+        ->middleware('throttle:10,1')
         ->name('auth.register');
 
     Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:10,1')
         ->name('login');
 
     Route::post('/password/email', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'sendResetLinkEmail'])
@@ -34,10 +36,12 @@ Route::prefix('auth')->group(function () {
         ->name('password.email');
 
     Route::post('/password/reset', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'reset'])
+        ->middleware('throttle:5,1')
         ->name('password.reset');
 });
 
 Route::post('/guest-predict', [\App\Http\Controllers\Api\V1\GuestAnalysisController::class, 'predict'])
+    ->middleware('throttle:20,1')
     ->name('guest.predict');
 
 Route::get('/health', function () {
@@ -65,11 +69,82 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
 
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])
+        ->name('profile.avatar.update');
+
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])
+        ->name('profile.avatar.delete');
+
+    Route::get('/profile/signature', [ProfileController::class, 'streamSignature'])
+        ->name('profile.signature.stream');
+
+    Route::post('/profile/signature', [ProfileController::class, 'updateSignature'])
+        ->name('profile.signature.update');
+
+    Route::delete('/profile/signature', [ProfileController::class, 'deleteSignature'])
+        ->name('profile.signature.delete');
+
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('profile.password');
 
     Route::post('/profile/revoke-sessions', [ProfileController::class, 'revokeSessions'])
         ->name('profile.revoke-sessions');
+
+    // Optional Two-Factor Authentication (MFA)
+    Route::get('/profile/mfa', [\App\Http\Controllers\Api\V1\MfaController::class, 'status'])
+        ->name('profile.mfa.status');
+
+    Route::post('/profile/mfa/setup', [\App\Http\Controllers\Api\V1\MfaController::class, 'setup'])
+        ->middleware('throttle:5,1')
+        ->name('profile.mfa.setup');
+
+    Route::post('/profile/mfa/confirm', [\App\Http\Controllers\Api\V1\MfaController::class, 'confirm'])
+        ->middleware('throttle:5,1')
+        ->name('profile.mfa.confirm');
+
+    Route::post('/profile/mfa/disable', [\App\Http\Controllers\Api\V1\MfaController::class, 'disable'])
+        ->middleware('throttle:5,1')
+        ->name('profile.mfa.disable');
+
+
+    // Patients & Follow-up Center
+    Route::get('/patients', [\App\Http\Controllers\Api\V1\PatientController::class, 'index'])
+        ->name('patients.index');
+
+    Route::get('/patients/list', [\App\Http\Controllers\Api\V1\PatientController::class, 'listAll'])
+        ->name('patients.list');
+
+    Route::get('/patients/stats', [\App\Http\Controllers\Api\V1\PatientController::class, 'stats'])
+        ->name('patients.stats');
+
+    Route::get('/patients/next-id', [\App\Http\Controllers\Api\V1\PatientController::class, 'nextId'])
+        ->name('patients.nextId');
+
+    Route::post('/patients', [\App\Http\Controllers\Api\V1\PatientController::class, 'store'])
+        ->name('patients.store');
+
+    Route::get('/patients/{patient_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'show'])
+        ->name('patients.show');
+
+    Route::put('/patients/{patient_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'update'])
+        ->name('patients.update');
+
+    Route::post('/patients/{patient_id}/follow-ups', [\App\Http\Controllers\Api\V1\PatientController::class, 'scheduleFollowUp'])
+        ->name('patients.followUps.store');
+
+    Route::put('/patients/{patient_id}/follow-ups/{follow_up_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'updateFollowUp'])
+        ->where('follow_up_id', '[0-9]+')
+        ->name('patients.followUps.update');
+
+    Route::delete('/patients/{patient_id}/follow-ups/{follow_up_id}', [\App\Http\Controllers\Api\V1\PatientController::class, 'deleteFollowUp'])
+        ->where('follow_up_id', '[0-9]+')
+        ->name('patients.followUps.destroy');
+
+    Route::get('/patients/{patient_id}/compare', [\App\Http\Controllers\Api\V1\PatientController::class, 'compareScans'])
+        ->name('patients.compare');
+
+    Route::get('/patients/{patient_id}/history/pdf', [\App\Http\Controllers\Api\V1\PatientController::class, 'downloadHistoryPdf'])
+        ->name('patients.history.pdf');
 
     // System Settings
     Route::get('/settings', [SettingsController::class, 'index'])

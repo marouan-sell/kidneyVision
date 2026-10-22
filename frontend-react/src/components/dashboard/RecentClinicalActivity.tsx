@@ -3,17 +3,9 @@ import type { Diagnosis, RiskLevel, ScanRecord } from '../../types/scan';
 import {
   Search,
   Filter,
-  Eye,
-  ShieldCheck,
-  AlertTriangle,
-  Clock,
   ChevronLeft,
   ChevronRight,
   FileDown,
-  Activity,
-  AlertOctagon,
-  XCircle,
-  CheckCircle2,
 } from 'lucide-react';
 import { generateScanPdfReport } from '../../utils/generateScanPdfReport';
 
@@ -157,7 +149,9 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
             {paginatedScans.length === 0 ? (
               <tr>
                 <td colSpan={9} className="py-8 text-center text-slate-400">
-                  No scan records matching the selected criteria.
+                  {scans.length === 0
+                    ? 'No scans recorded yet. Upload an ultrasound scan to begin analysis.'
+                    : 'No scan records matching the selected criteria.'}
                 </td>
               </tr>
             ) : (
@@ -200,38 +194,38 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                     {/* AI Result */}
                     <td className="py-3 px-4">
                       {isRejected && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-                          <XCircle className="w-3 h-3 text-red-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
                           Rejected / Non-Kidney
                         </span>
                       )}
                       {isNormal && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                          <ShieldCheck className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           Normal
                         </span>
                       )}
                       {isStone && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
-                          <AlertTriangle className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                           Stone Detected
                         </span>
                       )}
                       {isCyst && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
-                          <Activity className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
                           Renal Cyst
                         </span>
                       )}
                       {isTumor && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200/60">
-                          <AlertOctagon className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
                           Tumor Alert
                         </span>
                       )}
                       {isPending && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
-                          <Clock className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                           Pending Review
                         </span>
                       )}
@@ -282,18 +276,18 @@ export const RecentClinicalActivity: React.FC<RecentClinicalActivityProps> = ({
                     {/* Status */}
                     <td className="py-3 px-4">
                       {scan.status === 'flagged' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                          <AlertOctagon className="w-3 h-3 text-rose-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                           <span>Flagged</span>
                         </span>
                       ) : scan.status === 'under_review' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          <Clock className="w-3 h-3 text-amber-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                           <span>Under Review</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           <span>Confirmed</span>
                         </span>
                       )}

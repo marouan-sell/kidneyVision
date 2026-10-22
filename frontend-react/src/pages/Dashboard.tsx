@@ -25,12 +25,13 @@ import {
 } from '../data/mockAnalytics';
 
 import { getAnalyses } from '../services/analysis.service';
+import { getStatistics } from '../services/dashboard.service';
 import { KidneyAnalysis, DiagnosisResult } from '../types/analysis';
+import type { DashboardStats } from '../types';
 
 import type { DateRangeOption } from '../types/dashboard';
 import type { Diagnosis, ScanRecord, ScanStatus } from '../types/scan';
-import { MOCK_SCANS } from '../data/mockScans';
-import { Menu, Upload, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 export interface DashboardProps {
   hideSidebar?: boolean;
@@ -153,20 +154,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
   // Modal inspection state
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
 
-  // New Analysis Demo State
-  const [showNewScanModal, setShowNewScanModal] = useState<boolean>(false);
-  const [newScanStep, setNewScanStep] = useState<number>(1);
+  // Live aggregated DB statistics (to support arbitrarily large archives)
+  const [liveStats, setLiveStats] = useState<DashboardStats | null>(null);
 
-  // Load real analyses from Laravel API if available
+  // Load real analyses from Laravel API and global DB statistics
   const loadBackendScans = async () => {
     try {
-      const res = await getAnalyses(1, 100);
-      if (res && res.data && res.data.length > 0) {
-        const mapped = res.data.map(mapAnalysisToScanRecord);
+      const [analysesResult, statsResult] = await Promise.allSettled([
+        getAnalyses(1, 100),
+        getStatistics(),
+      ]);
+
+      if (analysesResult.status === 'fulfilled' && analysesResult.value && Array.isArray(analysesResult.value.data)) {
+        const mapped = analysesResult.value.data.map(mapAnalysisToScanRecord);
         setBackendScans(mapped);
+      } else {
+        setBackendScans([]);
+      }
+
+      if (statsResult.status === 'fulfilled' && statsResult.value) {
+        setLiveStats(statsResult.value);
       }
     } catch {
-      // Backend offline or user not logged in; gracefully proceed with MOCK_SCANS
+      // Backend offline or user not logged in; retain real empty state
+      setBackendScans([]);
     }
   };
 
@@ -174,9 +185,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
     loadBackendScans();
   }, []);
 
-  // Real scans from backend database with graceful fallback to MOCK_SCANS
+  // Real scans from backend database (authenticated user)
   const allScans = useMemo(() => {
-    return backendScans.length > 0 ? backendScans : MOCK_SCANS;
+    return backendScans;
   }, [backendScans]);
 
   // Filter scans by active date range
@@ -186,8 +197,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
 
   // Derived metrics & chart datasets
   const metrics = useMemo(() => {
-    return computeDashboardMetrics(filteredRangeScans);
-  }, [filteredRangeScans]);
+    const computed = computeDashboardMetrics(filteredRangeScans);
+    if (dateRange === 'ALL' && liveStats && liveStats.totalScans > computed.totalScans) {
+      const total = liveStats.totalScans;
+      const normal = liveStats.normalCount;
+      const stones = liveStats.stoneCount;
+      const cysts = liveStats.cystCount;
+      const tumors = liveStats.tumorCount;
+      const pathDetections = stones + cysts + tumors;
+      const normalRate = total > 0 ? Math.round((normal / total) * 100) : 0;
+      const pathRate = total > 0 ? Math.round((pathDetections / total) * 100) : 0;
+      return {
+        ...computed,
+        totalScans: total,
+        normalScans: normal,
+        normalRate,
+        stoneScans: stones,
+        cystScans: cysts,
+        tumorScans: tumors,
+        pathologyDetections: pathDetections,
+        pathologyRate: pathRate,
+        scansDeltaPct: liveStats.monthGrowthPercentage !== null ? liveStats.monthGrowthPercentage : computed.scansDeltaPct,
+      };
+    }
+    return computed;
+  }, [filteredRangeScans, dateRange, liveStats]);
 
   const diagnosticDistribution = useMemo(() => {
     return computeDiagnosticDistribution(filteredRangeScans);
@@ -227,7 +261,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
         <DashboardSidebar
           isOpenMobile={isOpenMobile}
           onToggleMobile={() => setIsOpenMobile(!isOpenMobile)}
-          onNewScanClick={() => setShowNewScanModal(true)}
+          onNewScanClick={() => navigate('/analysis')}
         />
       )}
 
@@ -260,7 +294,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
             setDateRange((prev) => prev);
           }}
           pendingCount={metrics.pendingReviewCount}
-          onNewScanClick={() => setShowNewScanModal(true)}
         />
 
         {/* Dashboard Body Container */}
@@ -326,7 +359,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
             </div>
 
             {/* Row 2: Risk Stratification, Sweep Laterality & Demographics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               <RiskDistribution
                 distribution={riskDistribution}
                 totalScans={metrics.totalScans}
@@ -357,117 +390,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ hideSidebar = false }) => 
         onClose={() => setSelectedScan(null)}
         onScanUpdated={handleScanUpdated}
       />
-
-      {/* Interactive "New Ultrasound Scan" Demo Modal */}
-      {showNewScanModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in"
-          onClick={() => setShowNewScanModal(false)}
-        >
-          <div
-            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-sky-100 text-sky-700">
-                  <Upload className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    Upload Ultrasound Scan
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Connect DICOM or standard B-mode image stream
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowNewScanModal(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="my-6">
-              {newScanStep === 1 ? (
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center bg-slate-50 hover:bg-slate-100/60 cursor-pointer transition-colors">
-                    <Upload className="w-8 h-8 text-sky-600 mx-auto mb-2 animate-bounce" />
-                    <p className="text-sm font-semibold text-slate-800">
-                      Drag and drop DICOM / PNG / JPEG
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      B-mode renal acoustic window (up to 50MB)
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setNewScanStep(2)}
-                      className="mt-4 px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 shadow-xs"
-                    >
-                      Simulate Upload Demo Scan
-                    </button>
-                  </div>
-
-                  <div className="p-4 bg-sky-50 rounded-2xl border border-sky-100 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-sky-900">Live AI Inference Engine</p>
-                      <p className="text-[11px] text-sky-700">Run ConvNeXt-Tiny 4-Class & Gatekeeper inference via Flask & Laravel</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowNewScanModal(false);
-                        navigate('/analysis');
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer"
-                    >
-                      <span>Live Scan</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-900 space-y-3">
-                  <div className="flex items-center gap-2 font-bold text-sm">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    <span>Inference Pipeline Complete</span>
-                  </div>
-                  <p className="text-xs text-emerald-800 leading-relaxed">
-                    Scan verified by <strong>Stage-1 Gatekeeper AI</strong> and diagnosed with <strong>ConvNeXt-Tiny SOTA</strong> (4 Pathologies: Cyst, Normal, Stone, Tumor). Grad-CAM saliency generated. Case indexed as <strong>KV-DEMO-001</strong>.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowNewScanModal(false);
-                      setNewScanStep(1);
-                      setSelectedScan(allScans[0] || null);
-                    }}
-                    className="w-full py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shadow-xs"
-                  >
-                    Inspect Newly Analyzed Case
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowNewScanModal(false);
-                  setNewScanStep(1);
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

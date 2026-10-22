@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Patient::class, \App\Policies\PatientPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Analysis::class, \App\Policies\AnalysisPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Report::class, \App\Policies\ReportPolicy::class);
+
         \Illuminate\Auth\Notifications\ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
             $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/');
             $encodedEmail = urlencode((string) $notifiable->getEmailForPasswordReset());

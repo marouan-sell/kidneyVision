@@ -38,10 +38,10 @@ export function runAllDiagnosticTests() {
     total++;
     try {
       fn();
-      console.log(`  ✓ [PASS] ${name}`);
+      console.log(`  [PASS] ${name}`);
       passed++;
     } catch (err: any) {
-      console.error(`  ✗ [FAIL] ${name}`);
+      console.error(`  [FAIL] ${name}`);
       console.error(`    Error: ${err.message}\n`);
     }
   }

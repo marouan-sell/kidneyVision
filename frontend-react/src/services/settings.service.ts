@@ -63,7 +63,87 @@ export async function saveUserProfile(profile: Partial<UserProfile>): Promise<Us
 }
 
 /**
- * 5. POST /profile/password
+ * 5. POST /profile/avatar
+ */
+export async function uploadAvatar(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('avatar', file);
+  try {
+    const response = await apiClient.post('/profile/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data?.avatar_url;
+  } catch (e: any) {
+    throw new Error(e.response?.data?.message || "Failed to upload profile picture.");
+  }
+}
+
+/**
+ * 6. DELETE /profile/avatar
+ */
+export async function deleteAvatar(): Promise<void> {
+  try {
+    await apiClient.delete('/profile/avatar');
+  } catch (e: any) {
+    throw new Error(e.response?.data?.message || "Failed to remove profile picture.");
+  }
+}
+
+/**
+ * 7. POST /profile/signature
+ */
+export async function saveSignature(signatureDataUrl: string): Promise<{
+  signature_configured: boolean;
+  signature_url: string | null;
+  signature_updated_at?: string;
+}> {
+  try {
+    const response = await apiClient.post('/profile/signature', {
+      signature: signatureDataUrl,
+    });
+    return response.data.data;
+  } catch (e: any) {
+    throw new Error(e.response?.data?.message || "Failed to save digital signature.");
+  }
+}
+
+/**
+ * 8. DELETE /profile/signature
+ */
+export async function deleteSignature(): Promise<void> {
+  try {
+    await apiClient.delete('/profile/signature');
+  } catch (e: any) {
+    throw new Error(e.response?.data?.message || "Failed to remove digital signature.");
+  }
+}
+
+/**
+ * 9. GET /patients/next-id
+ */
+export async function fetchNextPatientId(): Promise<string> {
+  try {
+    const response = await apiClient.get('/patients/next-id');
+    return response.data.data?.next_patient_id || 'PT-10001';
+  } catch {
+    return 'PT-10001';
+  }
+}
+
+/**
+ * 10. GET /patients
+ */
+export async function fetchPatients(search?: string): Promise<any[]> {
+  try {
+    const response = await apiClient.get('/patients', { params: { search } });
+    return response.data.data || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 11. POST /profile/password
  */
 export async function changePassword(
   currentPassword: string,
@@ -83,7 +163,7 @@ export async function changePassword(
 }
 
 /**
- * 6. POST /profile/revoke-sessions
+ * 12. POST /profile/revoke-sessions
  */
 export async function revokeOtherSessions(): Promise<string> {
   try {
@@ -95,7 +175,7 @@ export async function revokeOtherSessions(): Promise<string> {
 }
 
 /**
- * 7. GET /audit-logs
+ * 13. GET /audit-logs
  */
 export async function fetchAuditLogs(params?: {
   page?: number;

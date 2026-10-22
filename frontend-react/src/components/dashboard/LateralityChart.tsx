@@ -16,9 +16,7 @@ export const LateralityChart: React.FC<LateralityChartProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-sky-50 text-sky-700">
-            <Compass className="w-4 h-4" />
-          </span>
+          <Compass className="w-4 h-4 text-slate-400 stroke-[1.75]" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">Anatomical Sweep Laterality</h3>
             <p className="text-xs text-slate-500">Distribution of ultrasound acoustic windows</p>

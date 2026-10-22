@@ -12,10 +12,10 @@ import {
   Download,
   XCircle,
   Crosshair,
-  Sparkles,
   Ruler,
   Cpu,
   Loader2,
+  FileText,
 } from 'lucide-react';
 import { generateScanPdfReport } from '../../utils/generateScanPdfReport';
 import { confirmAnalysis, flagAnalysis } from '../../services/analysis.service';
@@ -138,33 +138,19 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
         {/* Modal Header */}
         <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-3">
-            <div
-              className={`p-2.5 rounded-xl ${
-                isRejected
-                  ? 'bg-red-100 text-red-800'
-                  : isNormal
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : isStone
-                  ? 'bg-rose-100 text-rose-800'
-                  : isCyst
-                  ? 'bg-sky-100 text-sky-800'
-                  : isTumor
-                  ? 'bg-purple-100 text-purple-800'
-                  : 'bg-amber-100 text-amber-800'
-              }`}
-            >
+            <div className="shrink-0">
               {isRejected ? (
-                <XCircle className="w-6 h-6" />
+                <XCircle className="w-6 h-6 text-rose-500 stroke-[1.75]" />
               ) : isNormal ? (
-                <ShieldCheck className="w-6 h-6" />
+                <ShieldCheck className="w-6 h-6 text-emerald-500 stroke-[1.75]" />
               ) : isStone ? (
-                <AlertTriangle className="w-6 h-6" />
+                <AlertTriangle className="w-6 h-6 text-rose-500 stroke-[1.75]" />
               ) : isCyst ? (
-                <Activity className="w-6 h-6" />
+                <Layers className="w-6 h-6 text-sky-500 stroke-[1.75]" />
               ) : isTumor ? (
-                <AlertOctagon className="w-6 h-6" />
+                <AlertOctagon className="w-6 h-6 text-purple-500 stroke-[1.75]" />
               ) : (
-                <Clock className="w-6 h-6" />
+                <Clock className="w-6 h-6 text-amber-500 stroke-[1.75]" />
               )}
             </div>
             <div>
@@ -206,7 +192,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Acquired on {scan.formattedDate} • ConvNeXt SOTA 4-Class & MobileNetV3 Gatekeeper
+                Acquired on {scan.formattedDate}
               </p>
             </div>
           </div>
@@ -288,7 +274,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    <Sparkles className="w-3 h-3" />
+                    <Layers className="w-3 h-3 stroke-[1.75]" />
                     Grad-CAM
                   </button>
                 )}
@@ -364,8 +350,8 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
 
               {/* Reticle / calibration banner */}
               <div className="absolute bottom-2 left-4 right-4 flex items-center justify-between text-[10px] font-mono text-slate-400 pointer-events-none">
-                <span>D: 12.4 cm · ConvNeXt-Tiny Master</span>
-                <span>Gatekeeper: MobileNetV3</span>
+                <span>Calibration: 12.4 cm</span>
+                <span>Modality: Renal Ultrasound</span>
               </div>
             </div>
           </div>
@@ -373,12 +359,10 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
           {/* Stage-1 Gatekeeper Authenticity Banner */}
           <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4.5 h-4.5" />
-              </div>
+              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 stroke-[1.75]" />
               <div>
                 <div className="font-bold text-emerald-950 flex items-center gap-1.5">
-                  <span>Stage-1 Gatekeeper Screening: PASSED</span>
+                  <span>Modality Authenticity Screening: PASSED</span>
                   <span className="text-[10px] font-mono bg-emerald-200 px-1.5 py-0.2 rounded text-emerald-800">
                     Authentic Renal Scan
                   </span>
@@ -401,7 +385,7 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
           {scan.classProbabilities && (
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                <span>ConvNeXt 4-Class Softmax Distribution</span>
+                <span>4-Class Probability Spectrum</span>
                 <span className="text-[9.5px] font-mono text-slate-400">Class Probabilities</span>
               </div>
               <div className="grid grid-cols-4 gap-2">
@@ -508,19 +492,19 @@ export const ScanDetailModal: React.FC<ScanDetailModalProps> = ({ scan, onClose,
           {/* Demographic & Clinical Notes */}
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Activity className="w-4 h-4 text-sky-600" />
+              <FileText className="w-4 h-4 text-slate-400 stroke-[1.75]" />
               <span>Diagnostic Assessment & Decision Support Notes</span>
             </div>
             <p className="text-xs text-slate-700 leading-relaxed font-sans">
               {scan.clinicalAssessment?.recommendation ||
                 scan.notes ||
-                'Medical scan processed through SOTA ConvNeXt-Tiny & Gatekeeper AI inference. No acute disruption identified.'}
+                'Medical scan analyzed. Renal parenchyma preserved with no acute disruption identified.'}
             </p>
             <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-500">
               <span>
                 Cohort Demographic: {scan.patientAge} yrs • {scan.patientSex} • Laterality: {scan.laterality}
               </span>
-              <span className="font-mono text-[10px]">Model: ConvNeXt-Tiny Master SOTA + MobileNetV3 Gate</span>
+              <span className="font-mono text-[10px]">Standard Diagnostic Protocol</span>
             </div>
           </div>
         </div>

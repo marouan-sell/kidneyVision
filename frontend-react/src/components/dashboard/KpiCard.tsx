@@ -44,9 +44,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           {title}
         </span>
-        <div className={`p-2 rounded-xl ${iconBg} transition-transform group-hover:scale-105`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
-        </div>
+        <Icon className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors stroke-[1.75]" />
       </div>
 
       {/* Metric Value */}
