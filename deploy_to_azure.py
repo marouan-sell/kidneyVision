@@ -66,13 +66,20 @@ def main():
     parser.add_argument("--backend", action="store_true", help="Force restart backend & run migrations")
     parser.add_argument("--ai", action="store_true", help="Force rebuild AI flask container")
     parser.add_argument("--all", action="store_true", help="Rebuild all containers")
+    parser.add_argument("--rollback", action="store_true", help="Revert the last commit and redeploy previous stable version")
     parser.add_argument("--skip-push", action="store_true", help="Skip local git commit and push")
     args = parser.parse_args()
 
     log("KidneyVision AI — Azure Production Deployment Starting", "[START]")
 
-    # Step 1: Local Git status & push
-    if not args.skip_push:
+    # Rollback mode: Revert last commit
+    if args.rollback:
+        log("ROLLBACK IN PROGRESS: Reverting the last commit to previous stable version...", "[ROLLBACK]")
+        run_local("git revert HEAD --no-edit")
+        log("Pushing reverted commit to GitHub (origin main)...", "[GIT]")
+        run_local("git push origin main")
+    elif not args.skip_push:
+        # Step 1: Local Git status & push
         status_res = run_local("git status --porcelain", check=False)
         has_changes = bool(status_res.stdout.strip())
 
