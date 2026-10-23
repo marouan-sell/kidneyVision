@@ -35,6 +35,7 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
   const [location, setLocation] = useState<"Left Kidney" | "Right Kidney" | "Unspecified">("Left Kidney");
   const [clinicianNotes, setClinicianNotes] = useState<string>("");
   const [existingPatients, setExistingPatients] = useState<any[]>([]);
+  const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
 
   useEffect(() => {
     fetchPatients()
@@ -187,11 +188,36 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
 
   // Run AI Scan Execution
   const handleTriggerAnalysis = async () => {
+    setFormSubmitted(true);
+
     if (!uploadedFile && !uploadedFilePreview) {
-      setUploadError("Please upload a kidney ultrasound scan before running analysis.");
+      setUploadError("Veuillez importer une échographie rénale avant de lancer l'analyse.");
       return;
     }
 
+    const trimmedName = patientName.trim();
+    const trimmedAge = patientAge.trim();
+    const parsedAge = trimmedAge ? parseInt(trimmedAge, 10) : NaN;
+
+    // Validation: Check if both Name and Age are missing
+    if (!trimmedName && (!trimmedAge || isNaN(parsedAge))) {
+      setUploadError("Veuillez renseigner les informations obligatoires du patient (Nom complet et Âge).");
+      return;
+    }
+
+    // Validation: Check if only Name is missing
+    if (!trimmedName) {
+      setUploadError("Veuillez renseigner le nom complet du patient.");
+      return;
+    }
+
+    // Validation: Check if only Age is missing or invalid
+    if (!trimmedAge || isNaN(parsedAge) || parsedAge < 0 || parsedAge > 130) {
+      setUploadError("Veuillez renseigner un âge valide pour le patient (ex: 45 ans).");
+      return;
+    }
+
+    setUploadError(null);
     setIsScanning(true);
     setCurrentStageIdx(0);
     setClinicalError(null);
@@ -205,9 +231,8 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
     }, 600);
 
     try {
-      const finalPatientName = patientName.trim() || "Unspecified Patient";
+      const finalPatientName = trimmedName;
       const finalPatientId = patientId.trim() || undefined;
-      const parsedAge = patientAge.trim() ? parseInt(patientAge, 10) : undefined;
 
       const res = await createPrediction(uploadedFile, {
         patientId: finalPatientId,
@@ -426,23 +451,33 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
 
               <div className="space-y-1 col-span-2">
                 <div className="flex items-center justify-between">
-                  <label className="font-sans text-[11px] font-semibold text-[#434655]" htmlFor="patient-name">
-                    Patient Full Name
+                  <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center gap-1" htmlFor="patient-name">
+                    <span>Patient Full Name</span>
+                    <span className="text-rose-500 font-bold">*</span>
                   </label>
-                  {existingPatients.length > 0 && (
+                  {formSubmitted && !patientName.trim() ? (
+                    <span className="text-[10px] text-rose-500 font-medium">Nom requis</span>
+                  ) : existingPatients.length > 0 ? (
                     <span className="text-[9px] text-slate-400 font-medium">
                       {existingPatients.length} existing patient{existingPatients.length > 1 ? "s" : ""}
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <input 
                   id="patient-name"
                   list="existing-patients-datalist"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white placeholder:text-slate-400" 
+                  className={`w-full px-3 py-2 bg-[#f8fafc] border rounded-lg text-xs font-medium focus:ring-2 outline-none transition-all focus:bg-white placeholder:text-slate-400 ${
+                    formSubmitted && !patientName.trim()
+                      ? "border-rose-400 ring-1 ring-rose-200 bg-rose-50/20"
+                      : "border-[#c3c6d7] focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
+                  }`} 
                   type="text" 
                   placeholder="e.g. Sarah Jenkins or Case #104"
                   value={patientName}
-                  onChange={(e) => handlePatientNameChange(e.target.value)}
+                  onChange={(e) => {
+                    handlePatientNameChange(e.target.value);
+                    if (uploadError) setUploadError(null);
+                  }}
                 />
                 <datalist id="existing-patients-datalist">
                   {existingPatients.map((p) => (
@@ -457,18 +492,31 @@ export default function AppNewAnalysis({ onAddSuccess }: AppNewAnalysisProps) {
             {/* Age and Gender */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="font-sans text-[11px] font-semibold text-[#434655]" htmlFor="patient-age">
-                  Age (Years)
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="font-sans text-[11px] font-semibold text-[#434655] flex items-center gap-1" htmlFor="patient-age">
+                    <span>Age (Years)</span>
+                    <span className="text-rose-500 font-bold">*</span>
+                  </label>
+                  {formSubmitted && (!patientAge.trim() || isNaN(parseInt(patientAge, 10))) && (
+                    <span className="text-[10px] text-rose-500 font-medium">Âge requis</span>
+                  )}
+                </div>
                 <input 
                   id="patient-age"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-[#c3c6d7] rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all focus:bg-white placeholder:text-slate-400" 
+                  className={`w-full px-3 py-2 bg-[#f8fafc] border rounded-lg text-xs font-medium focus:ring-2 outline-none transition-all focus:bg-white placeholder:text-slate-400 ${
+                    formSubmitted && (!patientAge.trim() || isNaN(parseInt(patientAge, 10)))
+                      ? "border-rose-400 ring-1 ring-rose-200 bg-rose-50/20"
+                      : "border-[#c3c6d7] focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
+                  }`} 
                   type="number" 
                   min="0"
                   max="130"
                   placeholder="e.g. 48"
                   value={patientAge}
-                  onChange={(e) => setPatientAge(e.target.value)}
+                  onChange={(e) => {
+                    setPatientAge(e.target.value);
+                    if (uploadError) setUploadError(null);
+                  }}
                 />
               </div>
 

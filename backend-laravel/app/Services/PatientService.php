@@ -131,17 +131,22 @@ class PatientService
         } catch (\Throwable $e) {
             Log::warning('Fallback sequence generation', ['error' => $e->getMessage()]);
 
-            // Database lock fallback
+            // Database lock fallback (fully compatible with SQLite, PostgreSQL, and MySQL)
             return DB::transaction(function () {
-                $patientsMax = DB::table('patients')
-                    ->where('patient_id', 'LIKE', 'PT-%')
-                    ->selectRaw("MAX(CAST(SUBSTRING(patient_id FROM 4) AS INTEGER)) as max_seq")
-                    ->lockForUpdate()
-                    ->value('max_seq');
+                $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+                $substrExpr = $isSqlite
+                    ? "MAX(CAST(SUBSTR(patient_id, 4) AS INTEGER)) as max_seq"
+                    : "MAX(CAST(SUBSTRING(patient_id FROM 4) AS INTEGER)) as max_seq";
+
+                $patientQuery = DB::table('patients')->where('patient_id', 'LIKE', 'PT-%');
+                if (!$isSqlite) {
+                    $patientQuery->lockForUpdate();
+                }
+                $patientsMax = $patientQuery->selectRaw($substrExpr)->value('max_seq');
 
                 $analysesMax = DB::table('analyses')
                     ->where('patient_id', 'LIKE', 'PT-%')
-                    ->selectRaw("MAX(CAST(SUBSTRING(patient_id FROM 4) AS INTEGER)) as max_seq")
+                    ->selectRaw($substrExpr)
                     ->value('max_seq');
 
                 $highest = max((int) ($patientsMax ?? 0), (int) ($analysesMax ?? 0), 10000);
